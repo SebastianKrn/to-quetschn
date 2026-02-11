@@ -17,13 +17,13 @@ Status: Completed
 - Define canonical domain types for conversion, mapping, rendering, and export
 - Freeze queue and storage interfaces
 - Add contract tests and snapshots
-Status: Completed (expanded in Sprint 1 with queue payload + OMR error contracts)
+Status: Completed (expanded in Sprint 1 + Sprint 2 export contracts)
 
 ### 3. Service Boundaries
 - OMR service stub with Audiveris adapter contract
 - Worker service for conversion/export queue processing
 - Web API stubs aligned to contract definitions
-Status: Upgraded in Sprint 1 to runtime implementation (stub phase complete)
+Status: Upgraded to runtime implementation (Sprint 1 conversion + Sprint 2 export)
 
 ### 4. Deployment Baseline
 - Docker Compose stack for Dokploy (`web`, `omr-service`, `worker`, `postgres`, `redis`, `minio`)
@@ -56,10 +56,19 @@ Status: Completed (unchanged in Sprint 1)
 ## Next Sprint Focus
 1. Harden Convex production deployment/auth and migration workflow.
 2. Expand OMR normalization for real Audiveris output artifacts beyond baseline adapters.
-3. Implement production PDF export renderer layout and queueed export worker path.
-4. Add benchmark dataset harness with licensed reference PDFs.
-5. Start practice-mode runtime (auto-scroll + tempo UI) using persisted arrangements.
+3. Add benchmark dataset harness with licensed reference PDFs.
+4. Start practice-mode runtime (auto-scroll + tempo UI) using persisted arrangements.
+5. Decide whether to keep latest-only export persistence or add export history model.
 6. Run Docker compose validation in environment with Docker CLI and capture deployment smoke notes.
+
+## Sprint 2 Micro-Sprint Progress (Implemented)
+1. Added export contracts (`ExportJob`, `ExportQueuePayload`) and export queue topics.
+2. Added Convex export persistence/functions with latest export state per arrangement.
+3. Added `@grifftab/renderer-pdf` for baseline printable PDF generation.
+4. Added worker export pipeline with status transitions and S3 artifact upload.
+5. Replaced export placeholder API with authenticated enqueue + status polling route behavior.
+6. Added ADR-0005 documenting export ownership and artifact pipeline.
+7. Passed quality gates for export slice: test, lint, typecheck, build.
 
 ## Acceptance For Sprint 1 Runtime Slice
 - `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build` pass.

@@ -34,8 +34,9 @@ Use project skills from `.claude/skills/*` when task trigger matches skill descr
 
 ## Current Phase
 - Sprint 1 runtime slice is completed as of 2026-02-11 (auth + Convex + queue + OMR + mapping + renderer + runtime API handlers).
+- Sprint 2 export micro-sprint is completed as of 2026-02-11 (queued PDF renderer + worker export pipeline + export status API + artifact storage).
 - Prioritize Sprint 2 hardening:
   - Convex production deployment/auth hardening
   - OMR normalization expansion
-  - PDF export pipeline implementation
   - benchmark dataset and regression harness
+  - practice-mode runtime integration

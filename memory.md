@@ -26,6 +26,7 @@ Last updated: 2026-02-11
 - `GET /api/arrangements/:id/export` now returns live export status and signed download URL for completed artifacts.
 - OMR service returns typed failure codes and normalized score payloads.
 - Mapping/renderer packages now provide deterministic v1 implementations with tests.
+- Project context docs are synchronized to include Sprint 2 export completion (`PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `AGENTS.md`, `CLAUDE.md`, `README.md`, `docs/qa/acceptance-criteria.md`).
 - Agent context has been updated to treat Sprint 1 runtime as completed and Sprint 2 hardening as active next phase.
 
 ## Open Risks
@@ -41,6 +42,7 @@ Last updated: 2026-02-11
 3. Add benchmark dataset with licensed PDFs and regression harness.
 4. Begin practice-mode UI runtime integration.
 5. Decide whether to add export-history retention beyond latest-only model.
+6. Run Docker compose validation in Docker-enabled environment and record smoke results.
 
 ## Session Log Template
 ### YYYY-MM-DD
@@ -57,6 +59,7 @@ Last updated: 2026-02-11
 - Added queue payload and OMR error contracts, plus new unit/integration tests.
 - Implemented Sprint 2 micro-sprint export runtime: Convex export persistence, worker PDF pipeline, and authenticated export trigger/status APIs.
 - Added `@grifftab/renderer-pdf` package with baseline printable PDF renderer and tests.
+- Synced project context and workflow docs for next-session continuity across spec/plan/agent docs/QA acceptance.
 - Passed quality gates: `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm validate:skills`, `pnpm validate:memory`.
 - Decisions made:
 - Kept `FEATURE_PUBLIC_SHARING=false` and legal guardrails unchanged.

@@ -28,3 +28,19 @@
 - Transpose confirmation re-queues conversion.
 - Mapping engine returns deterministic transpose suggestions for unplayable notes.
 - Renderer outputs valid SVG with push/pull notation symbols.
+
+## Sprint 2 Export Micro-Sprint Addendum
+
+### Export Runtime Coverage
+- `POST /api/arrangements/:id/export` requires auth and enqueues export jobs when needed.
+- `GET /api/arrangements/:id/export` requires auth and returns latest export status.
+- Completed exports return signed artifact URL metadata.
+- Worker consumes export queue and updates status (`queued`, `processing`, `completed`, `failed`).
+- Export artifacts are written to S3-compatible storage using deterministic key shape.
+
+### Export Test Scenarios
+- Unauthenticated export trigger/status access returns `401`.
+- Export trigger returns queued export metadata and queue job id.
+- Export status returns non-completed states without download URL.
+- Export status returns signed URL when export is `completed`.
+- Export pipeline marks failed status with typed export error code on render/storage failures.
