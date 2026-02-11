@@ -18,6 +18,10 @@ exports[`domain contracts > matches api contract snapshot 1`] = `
     "method": "GET",
     "path": "/api/arrangements/:id",
   },
+  "getArrangementExport": {
+    "method": "GET",
+    "path": "/api/arrangements/:id/export",
+  },
   "getConversion": {
     "method": "GET",
     "path": "/api/conversions/:id",

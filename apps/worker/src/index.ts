@@ -1,11 +1,18 @@
 import { Redis } from "ioredis";
 import { QueueEvents, Worker } from "bullmq";
-import { ConversionQueuePayloadSchema, QueueTopics } from "@grifftab/domain-types";
+import {
+  ConversionQueuePayloadSchema,
+  ExportQueuePayloadSchema,
+  QueueTopics
+} from "@grifftab/domain-types";
 import { HeuristicMappingEngine } from "@grifftab/griffschrift-engine";
+import { PdfArrangementRenderer } from "@grifftab/renderer-pdf";
 import { getWorkerEnv } from "./env.js";
 import { OmrServiceHttpClient } from "./omr-client.js";
 import { ConvexDomainClient } from "./convex-client.js";
 import { getErrorCode, isRetryableOmrError, runConversionPipeline } from "./pipeline.js";
+import { runExportPipelineWithFailureHandling } from "./export-pipeline.js";
+import { S3WorkerStorageClient } from "./storage.js";
 
 async function main() {
   const env = getWorkerEnv();
@@ -14,9 +21,12 @@ async function main() {
   });
 
   const queueName = `${env.QUEUE_PREFIX}-${QueueTopics.ConversionRequested.replaceAll(".", "-")}`;
+  const exportQueueName = `${env.QUEUE_PREFIX}-${QueueTopics.ExportRequested.replaceAll(".", "-")}`;
   const mappingEngine = new HeuristicMappingEngine();
+  const pdfRenderer = new PdfArrangementRenderer();
   const omrClient = new OmrServiceHttpClient(env.OMR_SERVICE_URL);
   const domainClient = new ConvexDomainClient(env.CONVEX_URL);
+  const storageClient = new S3WorkerStorageClient();
 
   const worker = new Worker(
     queueName,
@@ -79,7 +89,43 @@ async function main() {
   );
 
   const events = new QueueEvents(queueName, { connection });
+  const exportEvents = new QueueEvents(exportQueueName, { connection });
   await events.waitUntilReady();
+  await exportEvents.waitUntilReady();
+
+  const exportWorker = new Worker(
+    exportQueueName,
+    async (job) => {
+      const parsed = ExportQueuePayloadSchema.safeParse(job.data);
+      if (!parsed.success) {
+        throw new Error(`Invalid export payload: ${parsed.error.message}`);
+      }
+
+      const result = await runExportPipelineWithFailureHandling({
+        payload: parsed.data,
+        domainClient,
+        storageClient,
+        renderer: pdfRenderer
+      });
+
+      console.log(
+        JSON.stringify({
+          level: env.LOG_LEVEL,
+          event: "export.pipeline.completed",
+          arrangementId: parsed.data.arrangementId,
+          exportId: parsed.data.exportId,
+          artifactKey: result.artifactKey,
+          attempt: job.attemptsMade + 1
+        })
+      );
+
+      return result;
+    },
+    {
+      connection,
+      concurrency: env.WORKER_CONCURRENCY
+    }
+  );
 
   worker.on("completed", (job) => {
     console.log(
@@ -102,7 +148,35 @@ async function main() {
     );
   });
 
-  console.log(JSON.stringify({ level: env.LOG_LEVEL, message: "worker started", queueName }));
+  exportWorker.on("completed", (job) => {
+    console.log(
+      JSON.stringify({
+        level: env.LOG_LEVEL,
+        event: QueueTopics.ExportCompleted,
+        id: job.id
+      })
+    );
+  });
+
+  exportWorker.on("failed", (job, error) => {
+    console.error(
+      JSON.stringify({
+        level: "error",
+        event: QueueTopics.ExportFailed,
+        id: job?.id,
+        error: error.message
+      })
+    );
+  });
+
+  console.log(
+    JSON.stringify({
+      level: env.LOG_LEVEL,
+      message: "worker started",
+      queueName,
+      exportQueueName
+    })
+  );
 }
 
 main().catch((error: unknown) => {

@@ -12,9 +12,11 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.987.0",
     "@grifftab/domain-types": "workspace:*",
     "@grifftab/griffschrift-engine": "workspace:*",
     "@grifftab/omr-provider": "workspace:*",
+    "@grifftab/renderer-pdf": "workspace:*",
     "@grifftab/renderer-svg": "workspace:*",
     "bullmq": "^5.41.2",
     "convex": "^1.31.7",

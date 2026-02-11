@@ -131,6 +131,36 @@ export const ConversionQueuePayloadSchema = z.object({
 });
 export type ConversionQueuePayload = z.infer<typeof ConversionQueuePayloadSchema>;
 
+export const ExportJobStatusSchema = z.enum(["queued", "processing", "completed", "failed"]);
+export type ExportJobStatus = z.infer<typeof ExportJobStatusSchema>;
+
+export const ExportErrorCodeSchema = z.enum([
+  "EXPORT_RENDER_FAILED",
+  "EXPORT_STORAGE_FAILED",
+  "EXPORT_ARRANGEMENT_NOT_FOUND",
+  "EXPORT_UNKNOWN_ERROR"
+]);
+export type ExportErrorCode = z.infer<typeof ExportErrorCodeSchema>;
+
+export const ExportJobSchema = z.object({
+  id: z.string().min(1),
+  arrangementId: z.string().min(1),
+  status: ExportJobStatusSchema,
+  format: z.literal("pdf"),
+  artifactKey: z.string().min(1).nullable(),
+  errorCode: ExportErrorCodeSchema.nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime()
+});
+export type ExportJob = z.infer<typeof ExportJobSchema>;
+
+export const ExportQueuePayloadSchema = z.object({
+  exportId: z.string().min(1),
+  arrangementId: z.string().min(1),
+  correlationId: z.string().min(1)
+});
+export type ExportQueuePayload = z.infer<typeof ExportQueuePayloadSchema>;
+
 export interface OmrProvider {
   extractScore(input: {
     sourceFilePath: string;
@@ -149,7 +179,10 @@ export interface MappingEngine {
 export const QueueTopics = {
   ConversionRequested: "conversion.requested",
   ConversionCompleted: "conversion.completed",
-  ConversionFailed: "conversion.failed"
+  ConversionFailed: "conversion.failed",
+  ExportRequested: "export.requested",
+  ExportCompleted: "export.completed",
+  ExportFailed: "export.failed"
 } as const;
 
 export type QueueTopic = (typeof QueueTopics)[keyof typeof QueueTopics];
@@ -175,5 +208,6 @@ export const ApiContracts = {
     path: "/api/conversions/:id/confirm-transpose"
   },
   getArrangement: { method: "GET", path: "/api/arrangements/:id" },
-  exportArrangement: { method: "POST", path: "/api/arrangements/:id/export" }
+  exportArrangement: { method: "POST", path: "/api/arrangements/:id/export" },
+  getArrangementExport: { method: "GET", path: "/api/arrangements/:id/export" }
 } as const;

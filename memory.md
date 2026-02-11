@@ -5,6 +5,7 @@ Last updated: 2026-02-11
 ## Snapshot
 - Foundation scaffold has been advanced to Sprint 1 runtime wiring.
 - Auth, queue orchestration, OMR runtime, mapping engine, and renderer are implemented.
+- Sprint 2 micro-sprint export slice is implemented with queued PDF generation and status polling API.
 - Public sharing remains blocked by default pending legal completion.
 
 ## Decisions (Locked)
@@ -21,6 +22,8 @@ Last updated: 2026-02-11
 ## Current State
 - API routes are no longer deterministic stubs; conversion + arrangement routes are runtime-backed and authenticated.
 - Worker executes queue jobs and updates conversion states.
+- Export flow is runtime-backed: queue-driven PDF generation, object storage artifact upload, and latest export status persistence.
+- `GET /api/arrangements/:id/export` now returns live export status and signed download URL for completed artifacts.
 - OMR service returns typed failure codes and normalized score payloads.
 - Mapping/renderer packages now provide deterministic v1 implementations with tests.
 - Agent context has been updated to treat Sprint 1 runtime as completed and Sprint 2 hardening as active next phase.
@@ -28,15 +31,16 @@ Last updated: 2026-02-11
 ## Open Risks
 - Convex runtime deployment credentials and migration process still require production hardening.
 - OMR normalization still needs expansion for broader real-world Audiveris output variants.
+- Export persistence is intentionally latest-only per arrangement (no historical export audit trail yet).
 - Docker CLI unavailable in this execution environment, so compose config validation could not run here.
 - BetterAuth currently warns on low-entropy default secret in build-time environments.
 
 ## Next Actions
 1. Harden Convex production auth + deployment flow and remove fallback assumptions.
 2. Expand OMR parser normalization for richer Audiveris output structures.
-3. Implement production PDF export rendering pipeline.
-4. Add benchmark dataset with licensed PDFs and regression harness.
-5. Begin practice-mode UI runtime integration.
+3. Add benchmark dataset with licensed PDFs and regression harness.
+4. Begin practice-mode UI runtime integration.
+5. Decide whether to add export-history retention beyond latest-only model.
 
 ## Session Log Template
 ### YYYY-MM-DD
@@ -51,12 +55,15 @@ Last updated: 2026-02-11
 - Added BetterAuth route handler and session gate for protected API endpoints.
 - Added Convex schema/functions for conversions and arrangements.
 - Added queue payload and OMR error contracts, plus new unit/integration tests.
+- Implemented Sprint 2 micro-sprint export runtime: Convex export persistence, worker PDF pipeline, and authenticated export trigger/status APIs.
+- Added `@grifftab/renderer-pdf` package with baseline printable PDF renderer and tests.
 - Passed quality gates: `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm validate:skills`, `pnpm validate:memory`.
 - Decisions made:
 - Kept `FEATURE_PUBLIC_SHARING=false` and legal guardrails unchanged.
 - Kept Sprint 1 scope backend/core-focused (no practice UI implementation).
+- Kept Sprint 2 export model latest-only per arrangement (no history table yet).
 - Blockers:
 - Docker CLI unavailable in this environment (`docker: command not found`), compose validation not executed.
 - Next:
 - Run compose validation in Docker-enabled environment.
-- Continue Sprint 2 hardening and benchmark dataset integration.
+- Continue Sprint 2 hardening (Convex/auth + OMR normalization) and benchmark dataset integration.

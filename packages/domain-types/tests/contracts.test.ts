@@ -16,7 +16,10 @@ describe("domain contracts", () => {
     expect(Object.values(QueueTopics)).toEqual([
       "conversion.requested",
       "conversion.completed",
-      "conversion.failed"
+      "conversion.failed",
+      "export.requested",
+      "export.completed",
+      "export.failed"
     ]);
   });
 

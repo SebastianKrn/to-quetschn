@@ -24,6 +24,12 @@ describe("POST /api/conversions/:id/confirm-transpose", () => {
       async getArrangement() {
         return null;
       },
+      async requestLatestExport() {
+        throw new Error("not used");
+      },
+      async getLatestExportByArrangement() {
+        return null;
+      },
       async confirmTranspose(input) {
         return {
           job: {
@@ -48,6 +54,9 @@ describe("POST /api/conversions/:id/confirm-transpose", () => {
     setQueueClientForTests({
       async enqueueConversion() {
         return { id: "queue-2" };
+      },
+      async enqueueExport() {
+        return { id: "queue-export-unused" };
       }
     });
   });

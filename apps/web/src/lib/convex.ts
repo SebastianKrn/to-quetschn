@@ -2,9 +2,11 @@ import { ConvexHttpClient } from "convex/browser";
 import {
   ArrangementSchema,
   ConversionJobSchema,
+  ExportJobSchema,
   type Arrangement,
   type ConversionJob,
   type ConversionJobStatus,
+  type ExportJob,
   type Tuning,
   type TransposeSuggestion
 } from "@grifftab/domain-types";
@@ -41,6 +43,14 @@ export interface DomainStore {
   getConversionSource(id: string): Promise<{ inputFileId: string; tuning: Tuning } | null>;
   upsertArrangement(arrangement: Arrangement): Promise<Arrangement>;
   getArrangement(id: string): Promise<Arrangement | null>;
+  requestLatestExport(input: {
+    arrangementId: string;
+    correlationId: string;
+  }): Promise<{
+    job: ExportJob;
+    shouldEnqueue: boolean;
+  }>;
+  getLatestExportByArrangement(arrangementId: string): Promise<ExportJob | null>;
 }
 
 interface StoredConversion {
@@ -52,9 +62,15 @@ interface StoredConversion {
   } | null;
 }
 
+interface StoredExport {
+  job: ExportJob;
+  correlationId: string;
+}
+
 const memory = {
   conversions: new Map<string, StoredConversion>(),
-  arrangements: new Map<string, Arrangement>()
+  arrangements: new Map<string, Arrangement>(),
+  exportsByArrangement: new Map<string, StoredExport>()
 };
 
 function nowIso(): string {
@@ -193,6 +209,55 @@ class MemoryDomainStore implements DomainStore {
   async getArrangement(id: string): Promise<Arrangement | null> {
     return memory.arrangements.get(id) ?? null;
   }
+
+  async requestLatestExport(input: {
+    arrangementId: string;
+    correlationId: string;
+  }): Promise<{
+    job: ExportJob;
+    shouldEnqueue: boolean;
+  }> {
+    const existing = memory.exportsByArrangement.get(input.arrangementId);
+    if (existing) {
+      const reusable =
+        existing.job.status === "queued" ||
+        existing.job.status === "processing" ||
+        (existing.job.status === "completed" && existing.job.artifactKey !== null);
+
+      if (reusable) {
+        return {
+          job: existing.job,
+          shouldEnqueue: false
+        };
+      }
+    }
+
+    const now = nowIso();
+    const exportJob = ExportJobSchema.parse({
+      id: existing?.job.id ?? `export-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+      arrangementId: input.arrangementId,
+      status: "queued",
+      format: "pdf",
+      artifactKey: null,
+      errorCode: null,
+      createdAt: existing?.job.createdAt ?? now,
+      updatedAt: now
+    });
+
+    memory.exportsByArrangement.set(input.arrangementId, {
+      job: exportJob,
+      correlationId: input.correlationId
+    });
+
+    return {
+      job: exportJob,
+      shouldEnqueue: true
+    };
+  }
+
+  async getLatestExportByArrangement(arrangementId: string): Promise<ExportJob | null> {
+    return memory.exportsByArrangement.get(arrangementId)?.job ?? null;
+  }
 }
 
 class ConvexDomainStore extends MemoryDomainStore {
@@ -313,6 +378,38 @@ class ConvexDomainStore extends MemoryDomainStore {
       return remote ? ArrangementSchema.parse(remote) : null;
     } catch {
       return super.getArrangement(id);
+    }
+  }
+
+  override async requestLatestExport(input: {
+    arrangementId: string;
+    correlationId: string;
+  }): Promise<{
+    job: ExportJob;
+    shouldEnqueue: boolean;
+  }> {
+    try {
+      const remote = await this.callMutation<{ job: ExportJob; shouldEnqueue: boolean }>(
+        "exports:requestLatestExport",
+        input
+      );
+      return {
+        job: ExportJobSchema.parse(remote.job),
+        shouldEnqueue: remote.shouldEnqueue
+      };
+    } catch {
+      return super.requestLatestExport(input);
+    }
+  }
+
+  override async getLatestExportByArrangement(arrangementId: string): Promise<ExportJob | null> {
+    try {
+      const remote = await this.callQuery<ExportJob | null>("exports:getLatestExportByArrangement", {
+        arrangementId
+      });
+      return remote ? ExportJobSchema.parse(remote) : null;
+    } catch {
+      return super.getLatestExportByArrangement(arrangementId);
     }
   }
 }

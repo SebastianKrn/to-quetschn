@@ -84,6 +84,12 @@ function createStore(): DomainStore {
     },
     async getArrangement() {
       return null;
+    },
+    async requestLatestExport() {
+      throw new Error("not used");
+    },
+    async getLatestExportByArrangement() {
+      return null;
     }
   };
 }
@@ -94,6 +100,9 @@ describe("POST /api/conversions", () => {
     setQueueClientForTests({
       async enqueueConversion() {
         return { id: "queue-1" };
+      },
+      async enqueueExport() {
+        return { id: "queue-export-unused" };
       }
     });
   });
