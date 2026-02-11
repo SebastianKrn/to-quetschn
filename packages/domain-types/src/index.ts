@@ -1,0 +1,140 @@
+import { z } from "zod";
+
+export const TUNINGS = ["GCFB", "ADGC", "BEADG", "CFBB"] as const;
+export type Tuning = (typeof TUNINGS)[number];
+
+export const ConversionJobStatusSchema = z.enum([
+  "queued",
+  "processing",
+  "needs_transpose_confirmation",
+  "completed",
+  "failed"
+]);
+export type ConversionJobStatus = z.infer<typeof ConversionJobStatusSchema>;
+
+export const ConversionJobSchema = z.object({
+  id: z.string().min(1),
+  status: ConversionJobStatusSchema,
+  inputFileId: z.string().min(1),
+  tuning: z.enum(TUNINGS),
+  progress: z.number().min(0).max(100),
+  errorCode: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime()
+});
+export type ConversionJob = z.infer<typeof ConversionJobSchema>;
+
+export const OmrNoteSchema = z.object({
+  pitch: z.string().min(1),
+  duration: z.string().min(1),
+  measure: z.number().int().min(1),
+  beat: z.number().min(0)
+});
+
+export const OmrScoreSchema = z.object({
+  title: z.string().default("Untitled"),
+  tempoBpm: z.number().int().positive().default(80),
+  timeSignature: z.string().default("4/4"),
+  notes: z.array(OmrNoteSchema)
+});
+export type OmrScore = z.infer<typeof OmrScoreSchema>;
+
+export const GriffDirectionSchema = z.enum(["push", "pull"]);
+export type GriffDirection = z.infer<typeof GriffDirectionSchema>;
+
+export const GriffTokenSchema = z.object({
+  id: z.string().min(1),
+  pitch: z.string().min(1),
+  row: z.number().int().min(1),
+  button: z.number().int().min(1),
+  direction: GriffDirectionSchema,
+  measure: z.number().int().min(1),
+  beat: z.number().min(0),
+  duration: z.string().min(1)
+});
+export type GriffToken = z.infer<typeof GriffTokenSchema>;
+
+export const MeasureSchema = z.object({
+  index: z.number().int().min(1),
+  tokens: z.array(GriffTokenSchema)
+});
+export type Measure = z.infer<typeof MeasureSchema>;
+
+export const ArrangementSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  tuning: z.enum(TUNINGS),
+  tempoBpm: z.number().int().positive(),
+  measures: z.array(MeasureSchema),
+  metadata: z.record(z.string(), z.string()).default({})
+});
+export type Arrangement = z.infer<typeof ArrangementSchema>;
+
+export const TransposeSuggestionSchema = z.object({
+  semitones: z.number().int(),
+  targetKey: z.string().min(1),
+  playabilityScore: z.number().min(0).max(1),
+  estimatedBellowsChanges: z.number().int().min(0),
+  reason: z.string().min(1)
+});
+export type TransposeSuggestion = z.infer<typeof TransposeSuggestionSchema>;
+
+export const MappingOptionsSchema = z.object({
+  optimizeBellows: z.boolean().default(true),
+  maxConsecutiveDirection: z.number().int().min(1).default(8)
+});
+export type MappingOptions = z.infer<typeof MappingOptionsSchema>;
+
+export const MappingResultSchema = z.object({
+  arrangement: ArrangementSchema,
+  warnings: z.array(z.string()),
+  transposeSuggestions: z.array(TransposeSuggestionSchema)
+});
+export type MappingResult = z.infer<typeof MappingResultSchema>;
+
+export interface OmrProvider {
+  extractScore(input: {
+    sourceFilePath: string;
+    correlationId?: string;
+  }): Promise<OmrScore>;
+}
+
+export interface MappingEngine {
+  mapScoreToGriffschrift(
+    score: OmrScore,
+    tuning: Tuning,
+    options?: MappingOptions
+  ): Promise<MappingResult>;
+}
+
+export const QueueTopics = {
+  ConversionRequested: "conversion.requested",
+  ConversionCompleted: "conversion.completed",
+  ConversionFailed: "conversion.failed"
+} as const;
+
+export type QueueTopic = (typeof QueueTopics)[keyof typeof QueueTopics];
+
+export interface StorageClient {
+  putObject(input: {
+    key: string;
+    body: Buffer;
+    contentType: string;
+  }): Promise<{ key: string }>;
+  getSignedUrl(input: {
+    key: string;
+    expiresInSeconds: number;
+  }): Promise<{ url: string }>;
+  deleteObject(input: { key: string }): Promise<void>;
+}
+
+export const ApiContracts = {
+  createConversion: { method: "POST", path: "/api/conversions" },
+  getConversion: { method: "GET", path: "/api/conversions/:id" },
+  confirmTranspose: {
+    method: "POST",
+    path: "/api/conversions/:id/confirm-transpose"
+  },
+  getArrangement: { method: "GET", path: "/api/arrangements/:id" },
+  exportArrangement: { method: "POST", path: "/api/arrangements/:id/export" }
+} as const;

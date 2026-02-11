@@ -1,0 +1,19 @@
+name: Docker Compose Validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  compose-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate production compose
+        run: docker compose -f docker-compose.yml config >/dev/null
+
+      - name: Validate dev compose
+        run: docker compose -f docker-compose.dev.yml config >/dev/null

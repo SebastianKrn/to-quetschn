@@ -1,0 +1,15 @@
+{
+  "version": "0.1.0",
+  "description": "Reference benchmark manifest template for OMR and mapping accuracy",
+  "entries": [
+    {
+      "id": "sample-001",
+      "title": "Piraten der Karibik (excerpt)",
+      "sourcePdf": "benchmarks/pdfs/sample-001.pdf",
+      "expectedJson": "benchmarks/expected/sample-001.json",
+      "tuning": "GCFB",
+      "licenseStatus": "pending",
+      "notes": "Replace with licensed reference set"
+    }
+  ]
+}

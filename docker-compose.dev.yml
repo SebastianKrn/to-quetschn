@@ -1,0 +1,63 @@
+services:
+  web:
+    image: node:22-alpine
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    command: sh -lc "corepack enable && pnpm install && pnpm --filter @grifftab/web dev"
+    env_file:
+      - .env.dev.example
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+      - minio
+      - omr-service
+
+  omr-service:
+    image: node:22-alpine
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    command: sh -lc "corepack enable && pnpm install && pnpm --filter @grifftab/omr-service dev"
+    env_file:
+      - .env.dev.example
+    ports:
+      - "4100:4100"
+
+  worker:
+    image: node:22-alpine
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    command: sh -lc "corepack enable && pnpm install && pnpm --filter @grifftab/worker dev"
+    env_file:
+      - .env.dev.example
+    depends_on:
+      - redis
+      - omr-service
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: grifftab
+      POSTGRES_USER: grifftab
+      POSTGRES_PASSWORD: grifftab
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
