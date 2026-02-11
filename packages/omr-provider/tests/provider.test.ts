@@ -2,14 +2,25 @@ import { describe, expect, it } from "vitest";
 import { AudiverisOmrProvider } from "../src/index";
 
 describe("AudiverisOmrProvider", () => {
-  it("returns a score structure even when audiveris is unavailable", async () => {
+  it("maps missing binary to OMR_UNAVAILABLE", async () => {
     const provider = new AudiverisOmrProvider({
       binPath: "__missing_audiveris_binary__",
       timeoutMs: 100
     });
 
-    const result = await provider.extractScore({ sourceFilePath: "demo.pdf" });
-    expect(result.notes).toEqual([]);
-    expect(result.timeSignature).toBe("4/4");
+    await expect(provider.extractScore({ sourceFilePath: "demo.pdf" })).rejects.toMatchObject({
+      code: "OMR_UNAVAILABLE"
+    });
+  });
+
+  it("rejects non-pdf inputs with OMR_INPUT_INVALID", async () => {
+    const provider = new AudiverisOmrProvider({
+      binPath: "audiveris",
+      timeoutMs: 100
+    });
+
+    await expect(provider.extractScore({ sourceFilePath: "demo.txt" })).rejects.toMatchObject({
+      code: "OMR_INPUT_INVALID"
+    });
   });
 });

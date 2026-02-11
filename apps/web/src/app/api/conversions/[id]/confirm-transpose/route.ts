@@ -1,20 +1,48 @@
-import { jsonOk } from "@/lib/http";
+import { ConfirmTransposeRequestSchema } from "@grifftab/domain-types";
+import { requireSession, UnauthorizedError } from "@/lib/auth";
+import { getDomainStore } from "@/lib/convex";
+import { getQueueClient } from "@/lib/queue";
+import { jsonError, jsonOk } from "@/lib/http";
 
-export async function POST(
-  request: Request,
-  context: { params: { id: string } }
-) {
-  const body = (await request.json().catch(() => ({}))) as {
-    semitones?: number;
-    targetKey?: string;
-  };
+export async function POST(request: Request, context: { params: { id: string } }) {
+  try {
+    await requireSession(request);
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return jsonError(401, error.message);
+    }
+
+    return jsonError(401, "Not authenticated");
+  }
+
+  const bodyRaw = (await request.json().catch(() => ({}))) as unknown;
+  const body = ConfirmTransposeRequestSchema.safeParse(bodyRaw);
+  if (!body.success) {
+    return jsonError(400, "Invalid transpose confirmation payload");
+  }
+
+  const conversion = await getDomainStore().confirmTranspose({
+    id: context.params.id,
+    semitones: body.data.semitones,
+    targetKey: body.data.targetKey
+  });
+
+  if (!conversion) {
+    return jsonError(404, "Conversion not found");
+  }
+
+  await getQueueClient().enqueueConversion({
+    conversionId: conversion.job.id,
+    sourceFileId: conversion.job.inputFileId,
+    tuning: conversion.job.tuning,
+    correlationId: `transpose-${conversion.job.id}-${Date.now()}`,
+    transposeSemitones: body.data.semitones
+  });
 
   return jsonOk({
     ok: true,
-    conversionId: context.params.id,
-    confirmedTranspose: {
-      semitones: body.semitones ?? 0,
-      targetKey: body.targetKey ?? "original"
-    }
+    conversionId: conversion.job.id,
+    confirmedTranspose: body.data,
+    status: conversion.job.status
   });
 }

@@ -1,12 +1,13 @@
 # GriffTab Project Specification (Normalized)
 
 Last updated: 2026-02-11
-Status: Foundation bootstrap
+Status: Sprint 1 runtime implementation in progress
 
 ## Implementation Status (Current)
-- Foundation scaffold is implemented and verified (`pnpm verify` passing).
-- Architecture, legal, QA, and deployment baseline docs are present under `docs/` and `infra/`.
-- API/service logic remains intentionally stubbed for MVP feature implementation in the next phase.
+- Foundation scaffold remains verified and intact.
+- Sprint 1 runtime is implemented across auth, queue, OMR, mapping, renderer, and worker orchestration.
+- Conversion and arrangement API routes are now authenticated and persistence-backed.
+- Convex schema/functions are added for conversion/arrangement runtime persistence.
 
 ## Product Goal
 Build a browser-based workflow that converts standard notation PDFs into playable Griffschrift for Steirische Harmonika, then supports practice, correction, and export.
@@ -52,15 +53,19 @@ Excluded in this foundation stage:
 - `MappingEngine.mapScoreToGriffschrift(score, tuning, options): MappingResult`
 - `TransposeSuggestion[]` (ranked by playability score)
 - `Arrangement` canonical model as single source for renderer/editor/export
+- `ConversionQueuePayload` (worker contract)
+- `OmrError` with typed error code taxonomy
 
-## API Surface (Stubbed)
-- `POST /api/conversions`
+## API Surface
+- `POST /api/conversions` (multipart PDF or JSON `inputFileId`)
 - `GET /api/conversions/:id`
 - `POST /api/conversions/:id/confirm-transpose`
 - `GET /api/arrangements/:id`
 - `POST /api/arrangements/:id/export`
+- `GET/POST/PATCH/PUT/DELETE /api/auth/[...all]` (BetterAuth handler)
 
 ## Open Tracks (Known)
 - Legal and licensing workflow for copyrighted songs
 - Final reference dataset curation (currently partial)
 - Named music expert reviewer assignment
+- Final production-hardening of Convex deployment credentials and migration workflow

@@ -24,12 +24,41 @@ export const ConversionJobSchema = z.object({
 });
 export type ConversionJob = z.infer<typeof ConversionJobSchema>;
 
+export const CreateConversionRequestSchema = z.object({
+  inputFileId: z.string().min(1).optional(),
+  tuning: z.enum(TUNINGS).default("GCFB")
+});
+export type CreateConversionRequest = z.infer<typeof CreateConversionRequestSchema>;
+
+export const ConfirmTransposeRequestSchema = z.object({
+  semitones: z.number().int(),
+  targetKey: z.string().min(1)
+});
+export type ConfirmTransposeRequest = z.infer<typeof ConfirmTransposeRequestSchema>;
+
+export const OmrErrorCodeSchema = z.enum([
+  "OMR_TIMEOUT",
+  "OMR_UNAVAILABLE",
+  "OMR_PARSE_FAILED",
+  "OMR_INPUT_INVALID"
+]);
+export type OmrErrorCode = z.infer<typeof OmrErrorCodeSchema>;
+
+export const OmrErrorSchema = z.object({
+  code: OmrErrorCodeSchema,
+  message: z.string().min(1),
+  retryable: z.boolean(),
+  details: z.record(z.string(), z.string()).optional()
+});
+export type OmrError = z.infer<typeof OmrErrorSchema>;
+
 export const OmrNoteSchema = z.object({
   pitch: z.string().min(1),
   duration: z.string().min(1),
   measure: z.number().int().min(1),
   beat: z.number().min(0)
 });
+export type OmrNote = z.infer<typeof OmrNoteSchema>;
 
 export const OmrScoreSchema = z.object({
   title: z.string().default("Untitled"),
@@ -91,6 +120,16 @@ export const MappingResultSchema = z.object({
   transposeSuggestions: z.array(TransposeSuggestionSchema)
 });
 export type MappingResult = z.infer<typeof MappingResultSchema>;
+
+export const ConversionQueuePayloadSchema = z.object({
+  conversionId: z.string().min(1),
+  sourceFileId: z.string().min(1),
+  sourceDownloadUrl: z.string().url().optional(),
+  tuning: z.enum(TUNINGS),
+  correlationId: z.string().min(1),
+  transposeSemitones: z.number().int().optional()
+});
+export type ConversionQueuePayload = z.infer<typeof ConversionQueuePayloadSchema>;
 
 export interface OmrProvider {
   extractScore(input: {

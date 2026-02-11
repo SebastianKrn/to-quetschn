@@ -3,9 +3,9 @@
 Last updated: 2026-02-11
 
 ## Snapshot
-- Repository initialized with monorepo scaffolding and contract-first boundaries.
-- Community sharing is blocked by default pending legal completion.
-- Foundation verification is green (`pnpm verify` completed successfully).
+- Foundation scaffold has been advanced to Sprint 1 runtime wiring.
+- Auth, queue orchestration, OMR runtime, mapping engine, and renderer are implemented.
+- Public sharing remains blocked by default pending legal completion.
 
 ## Decisions (Locked)
 - Monorepo: pnpm + Turborepo
@@ -19,21 +19,23 @@ Last updated: 2026-02-11
 - Observability: Sentry + JSON logs
 
 ## Current State
-- Foundation code and docs are in place.
-- API endpoints are stubs wired to shared contracts.
-- Skill pack exists for architecture, OMR ops, mapping, and quality/release.
-- CI workflows for quality gates and compose validation are configured.
+- API routes are no longer deterministic stubs; conversion + arrangement routes are runtime-backed and authenticated.
+- Worker executes queue jobs and updates conversion states.
+- OMR service returns typed failure codes and normalized score payloads.
+- Mapping/renderer packages now provide deterministic v1 implementations with tests.
 
 ## Open Risks
-- Legal handling for copyrighted arrangement sharing not started.
-- Benchmark dataset only partially ready.
-- Music expert reviewer not yet assigned.
+- Convex runtime deployment credentials and migration process still require production hardening.
+- OMR normalization still needs expansion for broader real-world Audiveris output variants.
+- Docker CLI unavailable in this execution environment, so compose config validation could not run here.
+- BetterAuth currently warns on low-entropy default secret in build-time environments.
 
 ## Next Actions
-1. Wire BetterAuth adapter and Convex function layer to real stores.
-2. Integrate real Audiveris invocation path and parsing pipeline.
-3. Implement mapping heuristics and renderer layout engine.
-4. Add end-to-end tests with reference PDFs.
+1. Harden Convex production auth + deployment flow and remove fallback assumptions.
+2. Expand OMR parser normalization for richer Audiveris output structures.
+3. Implement production PDF export rendering pipeline.
+4. Add benchmark dataset with licensed PDFs and regression harness.
+5. Begin practice-mode UI runtime integration.
 
 ## Session Log Template
 ### YYYY-MM-DD
@@ -44,15 +46,16 @@ Last updated: 2026-02-11
 
 ### 2026-02-11
 - Completed:
-- Initialized repository and full monorepo scaffold (`apps/`, `packages/`, `docs/`, `infra/`, `.github/`).
-- Added shared contracts (`ConversionJob`, `OmrProvider`, `MappingEngine`, queue topics, storage interface) and API stubs.
-- Added mirrored Codex/Claude skill pack (4 skills) with sync/validation scripts.
-- Added env templates, docker compose files, ADRs, legal/QA baseline docs.
-- Ran and passed: `pnpm install` and `pnpm verify` (lint + typecheck + test + build + validations).
+- Implemented Sprint 1 runtime wiring across web, worker, OMR service, mapping engine, and renderer.
+- Added BetterAuth route handler and session gate for protected API endpoints.
+- Added Convex schema/functions for conversions and arrangements.
+- Added queue payload and OMR error contracts, plus new unit/integration tests.
+- Passed quality gates: `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm validate:skills`, `pnpm validate:memory`.
 - Decisions made:
-- Kept community sharing disabled by default pending legal completion.
-- Kept implementation at interface/stub level for foundation-only scope.
+- Kept `FEATURE_PUBLIC_SHARING=false` and legal guardrails unchanged.
+- Kept Sprint 1 scope backend/core-focused (no practice UI implementation).
 - Blockers:
-- No blocker for foundation completion.
+- Docker CLI unavailable in this environment (`docker: command not found`), compose validation not executed.
 - Next:
-- Start Sprint 1 implementation on auth/domain/OMR/mapping runtime integration.
+- Run compose validation in Docker-enabled environment.
+- Continue Sprint 2 hardening and benchmark dataset integration.

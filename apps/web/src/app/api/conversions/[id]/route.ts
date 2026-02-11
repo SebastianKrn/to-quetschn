@@ -1,21 +1,27 @@
-import { ConversionJobSchema } from "@grifftab/domain-types";
-import { jsonOk } from "@/lib/http";
+import { requireSession, UnauthorizedError } from "@/lib/auth";
+import { getDomainStore } from "@/lib/convex";
+import { jsonError, jsonOk } from "@/lib/http";
 
-export async function GET(
-  _request: Request,
-  context: { params: { id: string } }
-) {
-  const now = new Date().toISOString();
-  const job = ConversionJobSchema.parse({
-    id: context.params.id,
-    status: "processing",
-    inputFileId: "stub-input",
-    tuning: "GCFB",
-    progress: 25,
-    errorCode: null,
-    createdAt: now,
-    updatedAt: now
+export async function GET(request: Request, context: { params: { id: string } }) {
+  try {
+    await requireSession(request);
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return jsonError(401, error.message);
+    }
+
+    return jsonError(401, "Not authenticated");
+  }
+
+  const conversion = await getDomainStore().getConversion(context.params.id);
+  if (!conversion) {
+    return jsonError(404, "Conversion not found");
+  }
+
+  return jsonOk({
+    ok: true,
+    job: conversion.job,
+    transposeSuggestions: conversion.transposeSuggestions,
+    confirmedTranspose: conversion.confirmedTranspose
   });
-
-  return jsonOk({ ok: true, job });
 }

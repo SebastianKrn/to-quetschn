@@ -1,19 +1,30 @@
-import { getWebEnv } from "@/lib/env";
-import { jsonOk } from "@/lib/http";
+import { requireSession, UnauthorizedError } from "@/lib/auth";
+import { getDomainStore } from "@/lib/convex";
+import { jsonError, jsonOk } from "@/lib/http";
 
-export async function POST(
-  _request: Request,
-  context: { params: { id: string } }
-) {
-  const env = getWebEnv();
+export async function POST(request: Request, context: { params: { id: string } }) {
+  try {
+    await requireSession(request);
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return jsonError(401, error.message);
+    }
+
+    return jsonError(401, "Not authenticated");
+  }
+
+  const arrangement = await getDomainStore().getArrangement(context.params.id);
+  if (!arrangement) {
+    return jsonError(404, "Arrangement not found");
+  }
 
   return jsonOk({
     ok: true,
-    arrangementId: context.params.id,
+    arrangementId: arrangement.id,
     export: {
       format: "pdf",
       status: "queued",
-      storageEndpoint: env.OMR_SERVICE_URL
+      message: "Export pipeline is queued. Final PDF layout remains sprint-2 work."
     }
   });
 }

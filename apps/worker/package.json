@@ -13,7 +13,11 @@
   },
   "dependencies": {
     "@grifftab/domain-types": "workspace:*",
+    "@grifftab/griffschrift-engine": "workspace:*",
+    "@grifftab/omr-provider": "workspace:*",
+    "@grifftab/renderer-svg": "workspace:*",
     "bullmq": "^5.41.2",
+    "convex": "^1.31.7",
     "ioredis": "^5.4.2",
     "zod": "^3.24.1"
   },
