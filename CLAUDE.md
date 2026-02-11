@@ -33,5 +33,9 @@ Read in this order before coding:
 Use project skills from `.claude/skills/*` when task trigger matches skill description.
 
 ## Current Phase
-- Foundation bootstrap is complete as of 2026-02-11.
-- Prioritize Sprint 1 runtime implementation (auth/domain wiring, OMR execution, mapping engine, renderer layout).
+- Sprint 1 runtime slice is completed as of 2026-02-11 (auth + Convex + queue + OMR + mapping + renderer + runtime API handlers).
+- Prioritize Sprint 2 hardening:
+  - Convex production deployment/auth hardening
+  - OMR normalization expansion
+  - PDF export pipeline implementation
+  - benchmark dataset and regression harness

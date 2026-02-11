@@ -23,6 +23,7 @@ Last updated: 2026-02-11
 - Worker executes queue jobs and updates conversion states.
 - OMR service returns typed failure codes and normalized score payloads.
 - Mapping/renderer packages now provide deterministic v1 implementations with tests.
+- Agent context has been updated to treat Sprint 1 runtime as completed and Sprint 2 hardening as active next phase.
 
 ## Open Risks
 - Convex runtime deployment credentials and migration process still require production hardening.

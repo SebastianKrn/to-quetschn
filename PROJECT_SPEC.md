@@ -1,13 +1,19 @@
 # GriffTab Project Specification (Normalized)
 
 Last updated: 2026-02-11
-Status: Sprint 1 runtime implementation in progress
+Status: Sprint 1 runtime slice completed
 
 ## Implementation Status (Current)
 - Foundation scaffold remains verified and intact.
 - Sprint 1 runtime is implemented across auth, queue, OMR, mapping, renderer, and worker orchestration.
-- Conversion and arrangement API routes are now authenticated and persistence-backed.
-- Convex schema/functions are added for conversion/arrangement runtime persistence.
+- Conversion and arrangement API routes are authenticated and persistence-backed.
+- Convex schema/functions are present for conversion/arrangement runtime persistence.
+- Conversion ingestion supports both multipart PDF upload and JSON `inputFileId` submission.
+- OMR errors are typed and normalized using taxonomy:
+  - `OMR_TIMEOUT`
+  - `OMR_UNAVAILABLE`
+  - `OMR_PARSE_FAILED`
+  - `OMR_INPUT_INVALID`
 
 ## Product Goal
 Build a browser-based workflow that converts standard notation PDFs into playable Griffschrift for Steirische Harmonika, then supports practice, correction, and export.
@@ -69,3 +75,4 @@ Excluded in this foundation stage:
 - Final reference dataset curation (currently partial)
 - Named music expert reviewer assignment
 - Final production-hardening of Convex deployment credentials and migration workflow
+- Production compose validation must still be executed in Docker-enabled environment

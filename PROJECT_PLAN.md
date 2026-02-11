@@ -23,7 +23,7 @@ Status: Completed (expanded in Sprint 1 with queue payload + OMR error contracts
 - OMR service stub with Audiveris adapter contract
 - Worker service for conversion/export queue processing
 - Web API stubs aligned to contract definitions
-Status: Upgraded in Sprint 1 to runtime implementation (no longer stub-only)
+Status: Upgraded in Sprint 1 to runtime implementation (stub phase complete)
 
 ### 4. Deployment Baseline
 - Docker Compose stack for Dokploy (`web`, `omr-service`, `worker`, `postgres`, `redis`, `minio`)
@@ -51,6 +51,7 @@ Status: Completed (unchanged in Sprint 1)
 5. SVG renderer layout v1 implemented with measure/token rendering.
 6. Worker queue orchestration implemented for processing/completion/failure/transpose-confirmation flows.
 7. API route stubs replaced by runtime handlers (health route remains public).
+8. Quality gates passed for runtime slice: test, lint, typecheck, build, skills validation, memory validation.
 
 ## Next Sprint Focus
 1. Harden Convex production deployment/auth and migration workflow.
@@ -58,6 +59,7 @@ Status: Completed (unchanged in Sprint 1)
 3. Implement production PDF export renderer layout and queueed export worker path.
 4. Add benchmark dataset harness with licensed reference PDFs.
 5. Start practice-mode runtime (auto-scroll + tempo UI) using persisted arrangements.
+6. Run Docker compose validation in environment with Docker CLI and capture deployment smoke notes.
 
 ## Acceptance For Sprint 1 Runtime Slice
 - `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build` pass.
