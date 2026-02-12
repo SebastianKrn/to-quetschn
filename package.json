@@ -13,6 +13,7 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "build": "turbo run build",
+    "benchmark": "pnpm --filter @grifftab/benchmark-harness benchmark",
     "verify": "./scripts/verify-all.sh",
     "sync:skills": "./scripts/sync-skills.sh",
     "validate:skills": "node ./scripts/validate-skills.mjs",

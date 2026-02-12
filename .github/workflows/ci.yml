@@ -41,3 +41,15 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Benchmark (advisory)
+        run: pnpm benchmark -- --json .artifacts/benchmark-summary.json
+        continue-on-error: true
+
+      - name: Upload benchmark summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-summary
+          path: .artifacts/benchmark-summary.json
+          if-no-files-found: ignore

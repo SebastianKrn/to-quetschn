@@ -1,0 +1,28 @@
+{
+  "arrangement": {
+    "title": "Benchmark Sample",
+    "tuning": "GCFB",
+    "measureCount": 1,
+    "tokenSequence": [
+      {
+        "measure": 1,
+        "beat": 0,
+        "pitch": "C4",
+        "row": 2,
+        "button": 1,
+        "direction": "push",
+        "duration": "quarter"
+      },
+      {
+        "measure": 1,
+        "beat": 1,
+        "pitch": "D4",
+        "row": 1,
+        "button": 3,
+        "direction": "push",
+        "duration": "quarter"
+      }
+    ]
+  },
+  "transposeSuggestionSemitones": []
+}

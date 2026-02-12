@@ -6,10 +6,16 @@
       "id": "sample-001",
       "title": "Piraten der Karibik (excerpt)",
       "sourcePdf": "benchmarks/pdfs/sample-001.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-001.musicxml",
       "expectedJson": "benchmarks/expected/sample-001.json",
       "tuning": "GCFB",
       "licenseStatus": "pending",
-      "notes": "Replace with licensed reference set"
+      "notes": "Replace with licensed reference set",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
     }
   ]
 }

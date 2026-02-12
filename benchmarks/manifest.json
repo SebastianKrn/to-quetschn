@@ -1,0 +1,26 @@
+{
+  "version": "0.1.0",
+  "description": "GriffTab benchmark manifest for OMR normalization and mapping regression",
+  "entries": [
+    {
+      "id": "sample-licensed-001",
+      "title": "Licensed synthetic benchmark",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-001.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-001.musicxml",
+      "expectedJson": "benchmarks/expected/sample-licensed-001.json",
+      "tuning": "GCFB",
+      "licenseStatus": "licensed",
+      "notes": "Synthetic fixture for harness validation"
+    },
+    {
+      "id": "sample-001",
+      "title": "Piraten der Karibik (excerpt)",
+      "sourcePdf": "benchmarks/pdfs/sample-001.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-001.musicxml",
+      "expectedJson": "benchmarks/expected/sample-001.json",
+      "tuning": "GCFB",
+      "licenseStatus": "pending",
+      "notes": "Replace with licensed reference set"
+    }
+  ]
+}

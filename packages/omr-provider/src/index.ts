@@ -168,4 +168,5 @@ export class AudiverisOmrProvider implements OmrProvider {
   }
 }
 
+export { normalizeAudiverisOutput, normalizeAudiverisOutputDetailed } from "./normalize.js";
 export { OmrProviderError } from "./errors.js";
