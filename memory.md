@@ -1,11 +1,13 @@
 # GriffTab Memory
 
-Last updated: 2026-02-11
+Last updated: 2026-02-12
 
 ## Snapshot
 - Foundation scaffold has been advanced to Sprint 1 runtime wiring.
 - Auth, queue orchestration, OMR runtime, mapping engine, and renderer are implemented.
 - Sprint 2 micro-sprint export slice is implemented with queued PDF generation and status polling API.
+- Sprint 2 hardening priorities are implemented (Convex/auth hardening, OMR normalization expansion, benchmark harness).
+- Practice-mode runtime MVP is implemented with authenticated arrangement playback UI.
 - Public sharing remains blocked by default pending legal completion.
 
 ## Decisions (Locked)
@@ -25,24 +27,28 @@ Last updated: 2026-02-11
 - Export flow is runtime-backed: queue-driven PDF generation, object storage artifact upload, and latest export status persistence.
 - `GET /api/arrangements/:id/export` now returns live export status and signed download URL for completed artifacts.
 - OMR service returns typed failure codes and normalized score payloads.
+- OMR parser pipeline now supports JSON, delimited fallback, and MusicXML normalization inputs.
 - Mapping/renderer packages now provide deterministic v1 implementations with tests.
-- Project context docs are synchronized to include Sprint 2 export completion (`PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `AGENTS.md`, `CLAUDE.md`, `README.md`, `docs/qa/acceptance-criteria.md`).
-- Agent context has been updated to treat Sprint 1 runtime as completed and Sprint 2 hardening as active next phase.
+- Convex/auth hardening now enforces secure deployment behavior:
+  - stronger secret/config expectations in secure deployments
+  - deployment-aware fail-closed Convex auth requirements
+  - owner-scoped reads/writes with lazy owner backfill for legacy records
+- Benchmark harness package and CI advisory integration are in place with starter licensed fixtures.
+- Practice route `/practice/[arrangementId]` is implemented with tempo slider, play/pause auto-scroll, and mobile-safe layout.
+- Project context docs are synchronized to include hardening + practice completion (`PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `memory.md`).
 
 ## Open Risks
-- Convex runtime deployment credentials and migration process still require production hardening.
-- OMR normalization still needs expansion for broader real-world Audiveris output variants.
 - Export persistence is intentionally latest-only per arrangement (no historical export audit trail yet).
 - Docker CLI unavailable in this execution environment, so compose config validation could not run here.
-- BetterAuth currently warns on low-entropy default secret in build-time environments.
+- Benchmark dataset coverage is still small; regression confidence depends on growing licensed fixtures.
+- Practice runtime remains MVP-only (no loop editor, shortcuts, or MIDI/audio integration).
 
 ## Next Actions
-1. Harden Convex production auth + deployment flow and remove fallback assumptions.
-2. Expand OMR parser normalization for richer Audiveris output structures.
-3. Add benchmark dataset with licensed PDFs and regression harness.
-4. Begin practice-mode UI runtime integration.
-5. Decide whether to add export-history retention beyond latest-only model.
-6. Run Docker compose validation in Docker-enabled environment and record smoke results.
+1. Expand benchmark dataset with more licensed fixtures and calibrate thresholds from real runs.
+2. Decide whether to add export-history retention beyond latest-only model.
+3. Run Docker compose validation in Docker-enabled environment and record smoke results.
+4. Plan practice-mode v2 enhancements behind explicit scope gates.
+5. Continue legal/licensing workflow and reviewer assignment.
 
 ## Session Log Template
 ### YYYY-MM-DD
@@ -70,3 +76,26 @@ Last updated: 2026-02-11
 - Next:
 - Run compose validation in Docker-enabled environment.
 - Continue Sprint 2 hardening (Convex/auth + OMR normalization) and benchmark dataset integration.
+
+### 2026-02-12
+- Completed:
+- Implemented Sprint 2 hardening phases across auth/Convex, OMR normalization, and benchmark harness.
+- Implemented practice runtime MVP route and player UI with deterministic tempo-based auto-scroll helpers/tests.
+- Merged stacked sprint branches into `main` in order:
+  - `codex/feat/auth-convex-hardening`
+  - `codex/feat/omr-normalization-expansion`
+  - `codex/feat/benchmark-regression-harness`
+  - `codex/feat/practice-runtime-mvp`
+- Passed required quality gates on merged `main`:
+  - `pnpm test`
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm build`
+- Decisions made:
+- Kept benchmark CI advisory/non-blocking for now with future strict-mode path.
+- Kept practice scope intentionally bounded to MVP runtime behavior only.
+- Blockers:
+- Local policy in this environment blocks branch deletion commands (`git branch -d`), so merged feature branches could not be removed locally here.
+- Next:
+- Clean up merged local branches in an environment where branch-deletion policy permits `git branch -d`.
+- Continue benchmark dataset expansion and Docker-enabled deployment validation.

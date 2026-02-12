@@ -36,8 +36,13 @@ Use project skills from `.agents/skills/*` when task trigger matches skill descr
 ## Current Phase
 - Sprint 1 runtime slice is completed as of 2026-02-11 (auth + Convex + queue + OMR + mapping + renderer + runtime API handlers).
 - Sprint 2 export micro-sprint is completed as of 2026-02-11 (queued PDF renderer + worker export pipeline + export status API + artifact storage).
-- Prioritize Sprint 2 hardening:
-  - Convex production deployment/auth hardening
-  - OMR normalization expansion
-  - benchmark dataset and regression harness
-  - practice-mode runtime integration
+- Sprint 2 hardening + practice runtime MVP are completed as of 2026-02-12:
+  - Convex/Auth hardening with owner-scoped data access
+  - OMR normalization expansion (JSON + delimited + MusicXML paths)
+  - benchmark harness with advisory CI integration
+  - practice-mode runtime MVP route/UI
+- Prioritize next:
+  - benchmark dataset expansion and threshold tuning
+  - export history model decision (latest-only vs historical retention)
+  - Docker-enabled compose/deployment smoke validation
+  - practice-mode v2 scoping (looping/shortcuts/MIDI-audio follow-up)

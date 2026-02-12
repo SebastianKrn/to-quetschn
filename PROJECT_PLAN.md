@@ -1,6 +1,6 @@
 # GriffTab Execution Plan (Phase 1+2 Foundation)
 
-Last updated: 2026-02-11
+Last updated: 2026-02-12
 
 ## Objective
 Establish a production-ready foundation where coding agents can implement features quickly and safely with minimal ambiguity.
@@ -53,13 +53,31 @@ Status: Completed (unchanged in Sprint 1)
 7. API route stubs replaced by runtime handlers (health route remains public).
 8. Quality gates passed for runtime slice: test, lint, typecheck, build, skills validation, memory validation.
 
+## Sprint 2 Hardening + Practice Progress (Implemented)
+1. Convex/Auth hardening completed:
+- secure deployment-aware env validation
+- fail-closed Convex key expectations in secure deployments
+- restricted dev header auth to `development|test`
+- owner scoping with lazy owner backfill
+2. OMR normalization expansion completed:
+- parser pipeline supports JSON, delimited fallback, and MusicXML variants
+- provider now inspects Audiveris export artifacts before stdout fallback
+- OMR service emits richer structured diagnostics with parser-attempt context
+3. Benchmark regression harness completed:
+- added benchmark workspace package + CLI/tests
+- added manifest contract, starter licensed fixture set, and docs
+- wired advisory benchmark step into CI with strict-mode option
+4. Practice runtime MVP completed:
+- authenticated `/practice/[arrangementId]` page
+- client practice player with tempo control + play/pause auto-scroll
+- German-first UI labels; responsive layout baseline
+
 ## Next Sprint Focus
-1. Harden Convex production deployment/auth and migration workflow.
-2. Expand OMR normalization for real Audiveris output artifacts beyond baseline adapters.
-3. Add benchmark dataset harness with licensed reference PDFs.
-4. Start practice-mode runtime (auto-scroll + tempo UI) using persisted arrangements.
-5. Decide whether to keep latest-only export persistence or add export history model.
-6. Run Docker compose validation in environment with Docker CLI and capture deployment smoke notes.
+1. Expand benchmark dataset with additional licensed fixtures and tune thresholds from observed regressions.
+2. Evaluate export history retention model (beyond latest-only status per arrangement).
+3. Run Docker compose validation in Docker-enabled environment and capture deployment smoke notes.
+4. Plan practice-mode v2 scope (looping, shortcuts, optional MIDI/audio) behind explicit feature boundaries.
+5. Continue legal/licensing workflow and reviewer assignment for broader dataset readiness.
 
 ## Sprint 2 Micro-Sprint Progress (Implemented)
 1. Added export contracts (`ExportJob`, `ExportQueuePayload`) and export queue topics.
@@ -76,3 +94,11 @@ Status: Completed (unchanged in Sprint 1)
 - Conversion API accepts multipart and JSON ingestion modes.
 - Worker pipeline updates conversion states deterministically.
 - Legal/public-sharing guardrail remains unchanged (`FEATURE_PUBLIC_SHARING=false`).
+
+## Acceptance For Sprint 2 Hardening + Practice Slice
+- `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build` pass.
+- `pnpm validate:skills` and `pnpm validate:memory` pass.
+- Auth/Convex routes enforce owner-scoped access semantics.
+- OMR provider normalization supports JSON + delimited + MusicXML variants.
+- Benchmark harness executes licensed entries and skips pending entries with explicit reason.
+- Practice runtime page loads authenticated arrangements and applies deterministic tempo-based auto-scroll behavior.

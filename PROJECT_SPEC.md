@@ -1,7 +1,7 @@
 # GriffTab Project Specification (Normalized)
 
-Last updated: 2026-02-11
-Status: Sprint 2 micro-sprint export slice completed
+Last updated: 2026-02-12
+Status: Sprint 2 hardening + practice runtime MVP completed
 
 ## Implementation Status (Current)
 - Foundation scaffold remains verified and intact.
@@ -12,6 +12,14 @@ Status: Sprint 2 micro-sprint export slice completed
 - Worker renders baseline printable PDF and uploads artifacts to S3-compatible storage.
 - Convex schema/functions are present for conversion/arrangement runtime persistence.
 - Conversion ingestion supports both multipart PDF upload and JSON `inputFileId` submission.
+- Auth/Convex hardening is implemented for secure deployments:
+  - fail-closed env validation for deployment mode
+  - secure BetterAuth options + restricted dev-header auth behavior
+  - owner-scoped Convex data access with lazy owner backfill for legacy ownerless records
+  - server/worker Convex admin auth wiring with deployment-time key requirements
+- OMR normalization pipeline now supports JSON, delimited fallback, and MusicXML payload variants.
+- Benchmark regression harness is implemented with licensed-manifest filtering and advisory CI execution.
+- Practice mode runtime MVP is implemented at `/practice/[arrangementId]` with authenticated load, SVG rendering, tempo control, and auto-scroll.
 - OMR errors are typed and normalized using taxonomy:
   - `OMR_TIMEOUT`
   - `OMR_UNAVAILABLE`
@@ -75,12 +83,13 @@ Excluded in this foundation stage:
 - `POST /api/arrangements/:id/export`
 - `GET /api/arrangements/:id/export`
 - `GET/POST/PATCH/PUT/DELETE /api/auth/[...all]` (BetterAuth handler)
+- `GET /practice/:arrangementId` (authenticated practice runtime page)
 
 ## Open Tracks (Known)
 - Legal and licensing workflow for copyrighted songs
 - Final reference dataset curation (currently partial)
 - Named music expert reviewer assignment
-- Final production-hardening of Convex deployment credentials and migration workflow
-- OMR normalization expansion for broader real-world Audiveris output variants
 - Export history/audit model beyond latest-only per arrangement
 - Production compose validation must still be executed in Docker-enabled environment
+- Benchmark dataset expansion beyond current starter licensed fixture(s)
+- Practice mode enhancements (loop ranges, shortcuts, MIDI/audio) remain out of current sprint scope
