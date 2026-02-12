@@ -1,4 +1,6 @@
 import { execFile } from "node:child_process";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { promisify } from "node:util";
 import type { OmrProvider, OmrScore } from "@grifftab/domain-types";
 import { createOmrError, OmrProviderError } from "./errors.js";
@@ -11,10 +13,13 @@ export interface AudiverisProviderOptions {
   timeoutMs: number;
 }
 
-function mapExecError(error: unknown, input: {
-  sourceFilePath: string;
-  timeoutMs: number;
-}): OmrProviderError {
+function mapExecError(
+  error: unknown,
+  input: {
+    sourceFilePath: string;
+    timeoutMs: number;
+  }
+): OmrProviderError {
   const err = error as NodeJS.ErrnoException & {
     killed?: boolean;
     signal?: NodeJS.Signals;
@@ -50,6 +55,58 @@ function mapExecError(error: unknown, input: {
   });
 }
 
+function candidateAudiverisOutputs(sourceFilePath: string): string[] {
+  const parsed = path.parse(sourceFilePath);
+  const baseWithoutExt = path.join(parsed.dir, parsed.name);
+  const nestedBase = path.join(parsed.dir, parsed.name, parsed.name);
+  const suffixes = [".musicxml", ".xml", ".mxl"];
+
+  const paths = new Set<string>();
+  for (const suffix of suffixes) {
+    paths.add(`${baseWithoutExt}${suffix}`);
+    paths.add(`${nestedBase}${suffix}`);
+  }
+
+  return Array.from(paths);
+}
+
+async function readFirstExistingAudiverisOutput(sourceFilePath: string): Promise<{
+  artifactPath: string;
+  content: string;
+} | null> {
+  const candidates = candidateAudiverisOutputs(sourceFilePath);
+  for (const artifactPath of candidates) {
+    try {
+      const content = await fs.readFile(artifactPath, "utf8");
+      if (content.trim().length > 0) {
+        return {
+          artifactPath,
+          content
+        };
+      }
+    } catch (error) {
+      const nodeError = error as NodeJS.ErrnoException;
+      if (nodeError.code === "ENOENT") {
+        continue;
+      }
+
+      throw createOmrError({
+        code: "OMR_UNAVAILABLE",
+        message: "Unable to read Audiveris export artifact",
+        retryable: true,
+        details: {
+          sourceFilePath,
+          artifactPath,
+          error: nodeError.message
+        },
+        cause: error
+      });
+    }
+  }
+
+  return null;
+}
+
 export class AudiverisOmrProvider implements OmrProvider {
   constructor(private readonly options: AudiverisProviderOptions) {}
 
@@ -78,9 +135,25 @@ export class AudiverisOmrProvider implements OmrProvider {
         }
       );
 
+      const artifact = await readFirstExistingAudiverisOutput(input.sourceFilePath);
+      if (artifact) {
+        try {
+          return normalizeAudiverisOutput({
+            stdout: artifact.content,
+            sourceFilePath: input.sourceFilePath,
+            inputSource: artifact.artifactPath
+          });
+        } catch (error) {
+          if (!(error instanceof OmrProviderError) || error.code !== "OMR_PARSE_FAILED") {
+            throw error;
+          }
+        }
+      }
+
       return normalizeAudiverisOutput({
         stdout: stdout || stderr,
-        sourceFilePath: input.sourceFilePath
+        sourceFilePath: input.sourceFilePath,
+        inputSource: "stdout"
       });
     } catch (error) {
       if (error instanceof OmrProviderError) {

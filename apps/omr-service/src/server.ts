@@ -57,6 +57,7 @@ app.get("/health", (_req, res) => {
 app.post("/extract", async (req, res) => {
   const sourceFilePath = String(req.body?.sourceFilePath ?? "");
   const correlationId = String(req.body?.correlationId ?? "");
+  const startedAt = Date.now();
 
   if (!sourceFilePath) {
     const error = OmrErrorSchema.parse({
@@ -81,6 +82,15 @@ app.post("/extract", async (req, res) => {
       sourceFilePath: materialized.sourceFilePath,
       correlationId
     });
+    console.log(
+      JSON.stringify({
+        level: env.LOG_LEVEL,
+        event: "omr.extract.succeeded",
+        correlationId,
+        sourceFilePath: materialized.sourceFilePath,
+        durationMs: Date.now() - startedAt
+      })
+    );
     res.json({ ok: true, score: OmrScoreSchema.parse(score) });
   } catch (error) {
     if (error instanceof OmrProviderError) {
@@ -90,6 +100,18 @@ app.post("/extract", async (req, res) => {
         OMR_TIMEOUT: 504,
         OMR_UNAVAILABLE: 503
       } as const;
+
+      console.error(
+        JSON.stringify({
+          level: "error",
+          event: "omr.extract.failed",
+          correlationId,
+          code: error.code,
+          retryable: error.retryable,
+          durationMs: Date.now() - startedAt,
+          details: error.details
+        })
+      );
 
       res.status(statusByCode[error.code]).json({
         ok: false,
@@ -102,6 +124,18 @@ app.post("/extract", async (req, res) => {
       });
       return;
     }
+
+    console.error(
+      JSON.stringify({
+        level: "error",
+        event: "omr.extract.failed",
+        correlationId,
+        code: "OMR_UNAVAILABLE",
+        retryable: true,
+        durationMs: Date.now() - startedAt,
+        error: error instanceof Error ? error.message : "unknown"
+      })
+    );
 
     res.status(500).json({
       ok: false,
