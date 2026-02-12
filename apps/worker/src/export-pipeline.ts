@@ -8,7 +8,7 @@ import { PdfArrangementRenderer } from "@grifftab/renderer-pdf";
 import type { WorkerStorageClient } from "./storage.js";
 
 export interface ExportDomainClient {
-  getArrangement(input: { arrangementId: string }): Promise<Arrangement | null>;
+  getArrangement(input: { arrangementId: string; ownerUserId: string }): Promise<Arrangement | null>;
   markExportProcessing(input: { exportId: string }): Promise<void>;
   markExportCompleted(input: { exportId: string; artifactKey: string }): Promise<void>;
   markExportFailed(input: { exportId: string; errorCode: ExportErrorCode }): Promise<void>;
@@ -47,7 +47,8 @@ export async function runExportPipeline(input: {
   });
 
   const arrangement = await domainClient.getArrangement({
-    arrangementId: payload.arrangementId
+    arrangementId: payload.arrangementId,
+    ownerUserId: payload.ownerUserId
   });
 
   if (!arrangement) {

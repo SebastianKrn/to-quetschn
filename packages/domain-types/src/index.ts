@@ -126,6 +126,7 @@ export const ConversionQueuePayloadSchema = z.object({
   sourceFileId: z.string().min(1),
   sourceDownloadUrl: z.string().url().optional(),
   tuning: z.enum(TUNINGS),
+  ownerUserId: z.string().min(1),
   correlationId: z.string().min(1),
   transposeSemitones: z.number().int().optional()
 });
@@ -157,6 +158,7 @@ export type ExportJob = z.infer<typeof ExportJobSchema>;
 export const ExportQueuePayloadSchema = z.object({
   exportId: z.string().min(1),
   arrangementId: z.string().min(1),
+  ownerUserId: z.string().min(1),
   correlationId: z.string().min(1)
 });
 export type ExportQueuePayload = z.infer<typeof ExportQueuePayloadSchema>;

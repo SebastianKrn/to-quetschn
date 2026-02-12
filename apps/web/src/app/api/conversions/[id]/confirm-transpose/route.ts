@@ -5,8 +5,10 @@ import { getQueueClient } from "@/lib/queue";
 import { jsonError, jsonOk } from "@/lib/http";
 
 export async function POST(request: Request, context: { params: { id: string } }) {
+  let sessionUserId: string;
   try {
-    await requireSession(request);
+    const session = await requireSession(request);
+    sessionUserId = session.user.id;
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return jsonError(401, error.message);
@@ -24,7 +26,8 @@ export async function POST(request: Request, context: { params: { id: string } }
   const conversion = await getDomainStore().confirmTranspose({
     id: context.params.id,
     semitones: body.data.semitones,
-    targetKey: body.data.targetKey
+    targetKey: body.data.targetKey,
+    ownerUserId: sessionUserId
   });
 
   if (!conversion) {
@@ -35,6 +38,7 @@ export async function POST(request: Request, context: { params: { id: string } }
     conversionId: conversion.job.id,
     sourceFileId: conversion.job.inputFileId,
     tuning: conversion.job.tuning,
+    ownerUserId: sessionUserId,
     correlationId: `transpose-${conversion.job.id}-${Date.now()}`,
     transposeSemitones: body.data.semitones
   });

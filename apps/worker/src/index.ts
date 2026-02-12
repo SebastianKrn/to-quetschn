@@ -25,7 +25,7 @@ async function main() {
   const mappingEngine = new HeuristicMappingEngine();
   const pdfRenderer = new PdfArrangementRenderer();
   const omrClient = new OmrServiceHttpClient(env.OMR_SERVICE_URL);
-  const domainClient = new ConvexDomainClient(env.CONVEX_URL);
+  const domainClient = new ConvexDomainClient(env.CONVEX_URL, env.CONVEX_ADMIN_KEY);
   const storageClient = new S3WorkerStorageClient();
 
   const worker = new Worker(

@@ -5,7 +5,7 @@ import {
   TUNINGS,
   type Tuning
 } from "@grifftab/domain-types";
-import { requireSession, UnauthorizedError } from "@/lib/auth";
+import { requireSession, UnauthorizedError, type SessionLike } from "@/lib/auth";
 import { getDomainStore } from "@/lib/convex";
 import { getQueueClient } from "@/lib/queue";
 import { createConversionObjectKey, getStorageClient } from "@/lib/storage";
@@ -54,8 +54,9 @@ async function parseInput(
 }
 
 export async function POST(request: Request) {
+  let session: SessionLike;
   try {
-    await requireSession(request);
+    session = await requireSession(request);
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return jsonError(401, error.message);
@@ -102,7 +103,8 @@ export async function POST(request: Request) {
   const created = await getDomainStore().createConversion({
     id,
     inputFileId,
-    tuning: parsed.tuning
+    tuning: parsed.tuning,
+    ownerUserId: session.user.id
   });
 
   const queueResult = await getQueueClient().enqueueConversion({
@@ -110,6 +112,7 @@ export async function POST(request: Request) {
     sourceFileId: created.inputFileId,
     sourceDownloadUrl,
     tuning: created.tuning,
+    ownerUserId: session.user.id,
     correlationId
   });
 

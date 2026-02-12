@@ -1,14 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { requireSession, UnauthorizedError } from "@/lib/auth";
+import { requireSession, UnauthorizedError, type SessionLike } from "@/lib/auth";
 import { getDomainStore } from "@/lib/convex";
 import { getQueueClient } from "@/lib/queue";
 import { getStorageClient } from "@/lib/storage";
 import { jsonError, jsonOk } from "@/lib/http";
 
-async function requireAuth(request: Request): Promise<Response | null> {
+async function requireAuth(request: Request): Promise<SessionLike | Response> {
   try {
-    await requireSession(request);
-    return null;
+    return await requireSession(request);
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return jsonError(401, error.message);
@@ -19,12 +18,13 @@ async function requireAuth(request: Request): Promise<Response | null> {
 }
 
 export async function POST(request: Request, context: { params: { id: string } }) {
-  const authError = await requireAuth(request);
-  if (authError) {
-    return authError;
+  const authResult = await requireAuth(request);
+  if (authResult instanceof Response) {
+    return authResult;
   }
+  const session = authResult;
 
-  const arrangement = await getDomainStore().getArrangement(context.params.id);
+  const arrangement = await getDomainStore().getArrangement(context.params.id, session.user.id);
   if (!arrangement) {
     return jsonError(404, "Arrangement not found");
   }
@@ -32,7 +32,8 @@ export async function POST(request: Request, context: { params: { id: string } }
   const correlationId = randomUUID();
   const requested = await getDomainStore().requestLatestExport({
     arrangementId: arrangement.id,
-    correlationId
+    correlationId,
+    ownerUserId: session.user.id
   });
 
   let queueJobId: string | null = null;
@@ -40,6 +41,7 @@ export async function POST(request: Request, context: { params: { id: string } }
     const queued = await getQueueClient().enqueueExport({
       exportId: requested.job.id,
       arrangementId: arrangement.id,
+      ownerUserId: session.user.id,
       correlationId
     });
     queueJobId = queued.id;
@@ -55,12 +57,16 @@ export async function POST(request: Request, context: { params: { id: string } }
 }
 
 export async function GET(request: Request, context: { params: { id: string } }) {
-  const authError = await requireAuth(request);
-  if (authError) {
-    return authError;
+  const authResult = await requireAuth(request);
+  if (authResult instanceof Response) {
+    return authResult;
   }
+  const session = authResult;
 
-  const latestExport = await getDomainStore().getLatestExportByArrangement(context.params.id);
+  const latestExport = await getDomainStore().getLatestExportByArrangement(
+    context.params.id,
+    session.user.id
+  );
   if (!latestExport) {
     return jsonError(404, "Export not found");
   }

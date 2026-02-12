@@ -5,7 +5,7 @@ import { PostgresDialect } from "kysely";
 import { Pool } from "pg";
 import { getWebEnv } from "./env";
 
-type SessionLike = {
+export type SessionLike = {
   session: {
     id: string;
     userId: string;
@@ -40,14 +40,27 @@ const database =
         pool
       });
 
+function parseTrustedOrigins(): string[] {
+  const dynamicOrigins = (env.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0);
+
+  return Array.from(new Set([env.APP_BASE_URL, env.BETTER_AUTH_URL, ...dynamicOrigins]));
+}
+
 export const auth = betterAuth({
   appName: "GriffTab",
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
+  trustedOrigins: parseTrustedOrigins(),
   database,
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false
+  },
+  advanced: {
+    useSecureCookies: env.NODE_ENV === "staging" || env.NODE_ENV === "production"
   },
   plugins: [nextCookies()]
 });
@@ -61,12 +74,12 @@ export class UnauthorizedError extends Error {
   }
 }
 
-function devSessionFromHeaders(request: Request): SessionLike | null {
-  if (env.NODE_ENV === "production") {
+function devSessionFromHeaders(headers: Headers): SessionLike | null {
+  if (env.NODE_ENV !== "development" && env.NODE_ENV !== "test") {
     return null;
   }
 
-  const userId = request.headers.get("x-dev-user-id");
+  const userId = headers.get("x-dev-user-id");
   if (!userId) {
     return null;
   }
@@ -78,21 +91,21 @@ function devSessionFromHeaders(request: Request): SessionLike | null {
     },
     user: {
       id: userId,
-      email: request.headers.get("x-dev-user-email") ?? `${userId}@local.dev`,
-      name: request.headers.get("x-dev-user-name") ?? "Dev User"
+      email: headers.get("x-dev-user-email") ?? `${userId}@local.dev`,
+      name: headers.get("x-dev-user-name") ?? "Dev User"
     }
   };
 }
 
-export async function requireSession(request: Request): Promise<SessionLike> {
-  const devSession = devSessionFromHeaders(request);
+export async function requireSessionFromHeaders(headers: Headers): Promise<SessionLike> {
+  const devSession = devSessionFromHeaders(headers);
   if (devSession) {
     return devSession;
   }
 
   try {
     const session = await auth.api.getSession({
-      headers: request.headers
+      headers
     });
 
     if (!session) {
@@ -107,4 +120,8 @@ export async function requireSession(request: Request): Promise<SessionLike> {
 
     throw new UnauthorizedError("Session verification failed");
   }
+}
+
+export async function requireSession(request: Request): Promise<SessionLike> {
+  return requireSessionFromHeaders(request.headers);
 }

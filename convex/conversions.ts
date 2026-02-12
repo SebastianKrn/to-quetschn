@@ -1,11 +1,44 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+async function getAuthorizedConversion(
+  ctx: any,
+  input: { id: string; ownerUserId?: string }
+) {
+  const existing = await ctx.db
+    .query("conversions")
+    .withIndex("by_conversion_id", (q) => q.eq("conversionId", input.id))
+    .unique();
+
+  if (!existing) {
+    return null;
+  }
+
+  if (!input.ownerUserId) {
+    return existing;
+  }
+
+  if (existing.ownerUserId && existing.ownerUserId !== input.ownerUserId) {
+    return null;
+  }
+
+  if (!existing.ownerUserId) {
+    await ctx.db.patch(existing._id, {
+      ownerUserId: input.ownerUserId
+    });
+
+    return await ctx.db.get(existing._id);
+  }
+
+  return existing;
+}
+
 export const createConversion = mutation({
   args: {
     id: v.string(),
     inputFileId: v.string(),
-    tuning: v.union(v.literal("GCFB"), v.literal("ADGC"), v.literal("BEADG"), v.literal("CFBB"))
+    tuning: v.union(v.literal("GCFB"), v.literal("ADGC"), v.literal("BEADG"), v.literal("CFBB")),
+    ownerUserId: v.string()
   },
   handler: async (ctx, args) => {
     const now = new Date().toISOString();
@@ -14,7 +47,12 @@ export const createConversion = mutation({
       .withIndex("by_conversion_id", (q) => q.eq("conversionId", args.id))
       .unique();
 
+    if (existing?.ownerUserId && existing.ownerUserId !== args.ownerUserId) {
+      throw new Error("Conversion id already belongs to another user");
+    }
+
     const doc = {
+      ownerUserId: existing?.ownerUserId ?? args.ownerUserId,
       conversionId: args.id,
       status: "queued" as const,
       inputFileId: args.inputFileId,
@@ -47,12 +85,15 @@ export const createConversion = mutation({
 });
 
 export const getConversion = query({
-  args: { id: v.string() },
+  args: {
+    id: v.string(),
+    ownerUserId: v.string()
+  },
   handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("conversions")
-      .withIndex("by_conversion_id", (q) => q.eq("conversionId", args.id))
-      .unique();
+    const existing = await getAuthorizedConversion(ctx, {
+      id: args.id,
+      ownerUserId: args.ownerUserId
+    });
 
     if (!existing) {
       return null;
@@ -87,6 +128,7 @@ export const updateConversion = mutation({
     ),
     progress: v.number(),
     errorCode: v.optional(v.union(v.string(), v.null())),
+    ownerUserId: v.optional(v.string()),
     transposeSuggestions: v.optional(
       v.array(
         v.object({
@@ -100,16 +142,17 @@ export const updateConversion = mutation({
     )
   },
   handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("conversions")
-      .withIndex("by_conversion_id", (q) => q.eq("conversionId", args.id))
-      .unique();
+    const existing = await getAuthorizedConversion(ctx, {
+      id: args.id,
+      ownerUserId: args.ownerUserId
+    });
 
     if (!existing) {
       return null;
     }
 
     await ctx.db.patch(existing._id, {
+      ownerUserId: existing.ownerUserId ?? args.ownerUserId,
       status: args.status,
       progress: args.progress,
       errorCode: args.errorCode ?? existing.errorCode,
@@ -143,19 +186,21 @@ export const confirmTranspose = mutation({
   args: {
     id: v.string(),
     semitones: v.number(),
-    targetKey: v.string()
+    targetKey: v.string(),
+    ownerUserId: v.string()
   },
   handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("conversions")
-      .withIndex("by_conversion_id", (q) => q.eq("conversionId", args.id))
-      .unique();
+    const existing = await getAuthorizedConversion(ctx, {
+      id: args.id,
+      ownerUserId: args.ownerUserId
+    });
 
     if (!existing) {
       return null;
     }
 
     await ctx.db.patch(existing._id, {
+      ownerUserId: existing.ownerUserId ?? args.ownerUserId,
       status: "queued",
       progress: 0,
       errorCode: null,
@@ -189,12 +234,15 @@ export const confirmTranspose = mutation({
 });
 
 export const getConversionSource = query({
-  args: { id: v.string() },
+  args: {
+    id: v.string(),
+    ownerUserId: v.optional(v.string())
+  },
   handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("conversions")
-      .withIndex("by_conversion_id", (q) => q.eq("conversionId", args.id))
-      .unique();
+    const existing = await getAuthorizedConversion(ctx, {
+      id: args.id,
+      ownerUserId: args.ownerUserId
+    });
 
     if (!existing) {
       return null;

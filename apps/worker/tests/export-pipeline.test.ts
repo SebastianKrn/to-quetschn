@@ -44,6 +44,7 @@ describe("export pipeline", () => {
       payload: {
         exportId: "export-1",
         arrangementId: "arr-1",
+        ownerUserId: "user-1",
         correlationId: "corr-1"
       },
       domainClient,
@@ -96,6 +97,7 @@ describe("export pipeline", () => {
         payload: {
           exportId: "export-2",
           arrangementId: "arr-2",
+          ownerUserId: "user-1",
           correlationId: "corr-2"
         },
         domainClient,

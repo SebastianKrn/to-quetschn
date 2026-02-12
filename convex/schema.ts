@@ -3,6 +3,7 @@ import { v } from "convex/values";
 
 export default defineSchema({
   conversions: defineTable({
+    ownerUserId: v.optional(v.string()),
     conversionId: v.string(),
     status: v.union(
       v.literal("queued"),
@@ -39,11 +40,13 @@ export default defineSchema({
     )
   }).index("by_conversion_id", ["conversionId"]),
   arrangements: defineTable({
+    ownerUserId: v.optional(v.string()),
     arrangementId: v.string(),
     payload: v.any(),
     updatedAt: v.string()
   }).index("by_arrangement_id", ["arrangementId"]),
   exports: defineTable({
+    ownerUserId: v.optional(v.string()),
     exportId: v.string(),
     arrangementId: v.string(),
     status: v.union(

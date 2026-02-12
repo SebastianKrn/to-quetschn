@@ -16,7 +16,7 @@ export interface DomainClient {
     errorCode?: string | null;
     transposeSuggestions?: TransposeSuggestion[];
   }): Promise<void>;
-  upsertArrangement(arrangement: Arrangement): Promise<void>;
+  upsertArrangement(arrangement: Arrangement, ownerUserId: string): Promise<void>;
 }
 
 export interface OmrClient {
@@ -75,7 +75,7 @@ export async function runConversionPipeline(input: {
       conversionId: payload.conversionId,
       correlationId: payload.correlationId
     }
-  });
+  }, payload.ownerUserId);
 
   await domainClient.updateConversion({
     id: payload.conversionId,

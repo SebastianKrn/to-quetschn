@@ -3,8 +3,10 @@ import { getDomainStore } from "@/lib/convex";
 import { jsonError, jsonOk } from "@/lib/http";
 
 export async function GET(request: Request, context: { params: { id: string } }) {
+  let sessionUserId: string;
   try {
-    await requireSession(request);
+    const session = await requireSession(request);
+    sessionUserId = session.user.id;
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return jsonError(401, error.message);
@@ -13,7 +15,7 @@ export async function GET(request: Request, context: { params: { id: string } })
     return jsonError(401, "Not authenticated");
   }
 
-  const conversion = await getDomainStore().getConversion(context.params.id);
+  const conversion = await getDomainStore().getConversion(context.params.id, sessionUserId);
   if (!conversion) {
     return jsonError(404, "Conversion not found");
   }

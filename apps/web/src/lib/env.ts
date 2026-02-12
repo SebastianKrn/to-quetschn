@@ -8,7 +8,8 @@ const webEnvSchema = z.object({
   OMR_SERVICE_URL: z.string().url().default("http://localhost:4100"),
 
   BETTER_AUTH_URL: z.string().url().default("http://localhost:3000"),
-  BETTER_AUTH_SECRET: z.string().min(8).default("dev-secret-placeholder"),
+  BETTER_AUTH_SECRET: z.string().min(8).default("9h6W2mQ3rT8yL1pV7cN4xD5kF0sJ2aBz"),
+  BETTER_AUTH_TRUSTED_ORIGINS: z.string().optional(),
   DATABASE_URL: z.string().min(1).default("postgresql://grifftab:grifftab@localhost:5432/grifftab"),
 
   CONVEX_URL: z.string().url().default("http://127.0.0.1:3210"),
@@ -33,11 +34,48 @@ export type WebEnv = z.infer<typeof webEnvSchema>;
 
 let cachedEnv: WebEnv | null = null;
 
+function isPlaceholderSecret(secret: string): boolean {
+  const normalized = secret.trim().toLowerCase();
+  return [
+    "replace",
+    "replace-me",
+    "replace-prod",
+    "replace-staging",
+    "placeholder",
+    "dev-secret",
+    "dev-secret-placeholder",
+    "changeme"
+  ].some((token) => normalized.includes(token));
+}
+
+function isSecureRuntime(env: WebEnv): boolean {
+  return (
+    env.NODE_ENV === "staging" ||
+    env.CONVEX_DEPLOYMENT === "staging" ||
+    env.CONVEX_DEPLOYMENT === "production"
+  );
+}
+
+function assertSecureRuntimeConfig(env: WebEnv): void {
+  if (!isSecureRuntime(env)) {
+    return;
+  }
+
+  if (env.BETTER_AUTH_SECRET.length < 32 || isPlaceholderSecret(env.BETTER_AUTH_SECRET)) {
+    throw new Error("BETTER_AUTH_SECRET must be strong (>=32 chars, non-placeholder) in staging/production");
+  }
+
+  if (!env.CONVEX_ADMIN_KEY || isPlaceholderSecret(env.CONVEX_ADMIN_KEY)) {
+    throw new Error("CONVEX_ADMIN_KEY is required and must be non-placeholder in staging/production");
+  }
+}
+
 export function getWebEnv(): WebEnv {
   if (cachedEnv) {
     return cachedEnv;
   }
 
   cachedEnv = webEnvSchema.parse(process.env);
+  assertSecureRuntimeConfig(cachedEnv);
   return cachedEnv;
 }

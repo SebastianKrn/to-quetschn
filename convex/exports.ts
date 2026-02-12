@@ -59,17 +59,29 @@ function generateExportId(): string {
 export const requestLatestExport = mutation({
   args: {
     arrangementId: v.string(),
-    correlationId: v.string()
+    correlationId: v.string(),
+    ownerUserId: v.string()
   },
   returns: v.object({
     job: exportJobValidator,
     shouldEnqueue: v.boolean()
   }),
   handler: async (ctx, args) => {
-    const existing = await ctx.db
+    let existing = await ctx.db
       .query("exports")
       .withIndex("by_arrangement_id", (q) => q.eq("arrangementId", args.arrangementId))
       .unique();
+
+    if (existing?.ownerUserId && existing.ownerUserId !== args.ownerUserId) {
+      throw new Error("Export state for this arrangement belongs to another user");
+    }
+
+    if (existing && !existing.ownerUserId) {
+      await ctx.db.patch(existing._id, {
+        ownerUserId: args.ownerUserId
+      });
+      existing = await ctx.db.get(existing._id);
+    }
 
     if (existing) {
       const reusable =
@@ -87,6 +99,7 @@ export const requestLatestExport = mutation({
 
     const now = new Date().toISOString();
     const payload = {
+      ownerUserId: existing?.ownerUserId ?? args.ownerUserId,
       exportId: existing?.exportId ?? generateExportId(),
       arrangementId: args.arrangementId,
       status: "queued" as const,
@@ -113,7 +126,8 @@ export const requestLatestExport = mutation({
 
 export const getLatestExportByArrangement = query({
   args: {
-    arrangementId: v.string()
+    arrangementId: v.string(),
+    ownerUserId: v.string()
   },
   returns: v.union(exportJobValidator, v.null()),
   handler: async (ctx, args) => {
@@ -122,7 +136,23 @@ export const getLatestExportByArrangement = query({
       .withIndex("by_arrangement_id", (q) => q.eq("arrangementId", args.arrangementId))
       .unique();
 
-    return existing ? toExportJob(existing) : null;
+    if (!existing) {
+      return null;
+    }
+
+    if (existing.ownerUserId && existing.ownerUserId !== args.ownerUserId) {
+      return null;
+    }
+
+    if (!existing.ownerUserId) {
+      await ctx.db.patch(existing._id, {
+        ownerUserId: args.ownerUserId
+      });
+      const claimed = await ctx.db.get(existing._id);
+      return claimed ? toExportJob(claimed) : null;
+    }
+
+    return toExportJob(existing);
   }
 });
 

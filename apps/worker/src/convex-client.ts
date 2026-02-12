@@ -10,8 +10,14 @@ import type { DomainClient } from "./pipeline.js";
 export class ConvexDomainClient implements DomainClient {
   private readonly client: ConvexHttpClient;
 
-  constructor(url: string) {
+  constructor(url: string, adminKey?: string) {
     this.client = new ConvexHttpClient(url);
+    if (adminKey) {
+      const adminClient = this.client as unknown as {
+        setAdminAuth?: (token: string) => void;
+      };
+      adminClient.setAdminAuth?.(adminKey);
+    }
   }
 
   async updateConversion(input: {
@@ -24,15 +30,17 @@ export class ConvexDomainClient implements DomainClient {
     await this.client.mutation("conversions:updateConversion" as never, input as never);
   }
 
-  async upsertArrangement(arrangement: Arrangement): Promise<void> {
+  async upsertArrangement(arrangement: Arrangement, ownerUserId: string): Promise<void> {
     await this.client.mutation("arrangements:upsertArrangement" as never, {
-      arrangement: ArrangementSchema.parse(arrangement)
+      arrangement: ArrangementSchema.parse(arrangement),
+      ownerUserId
     } as never);
   }
 
-  async getArrangement(input: { arrangementId: string }): Promise<Arrangement | null> {
+  async getArrangement(input: { arrangementId: string; ownerUserId: string }): Promise<Arrangement | null> {
     const remote = await this.client.query("arrangements:getArrangement" as never, {
-      id: input.arrangementId
+      id: input.arrangementId,
+      ownerUserId: input.ownerUserId
     } as never);
     return remote ? ArrangementSchema.parse(remote as Arrangement) : null;
   }

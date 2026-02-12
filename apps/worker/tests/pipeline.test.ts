@@ -45,6 +45,7 @@ describe("runConversionPipeline", () => {
         conversionId: "c1",
         sourceFileId: "file-1",
         tuning: "GCFB",
+        ownerUserId: "user-1",
         correlationId: "corr-1"
       },
       mappingEngine,
@@ -101,6 +102,7 @@ describe("runConversionPipeline", () => {
         conversionId: "c2",
         sourceFileId: "file-2",
         tuning: "GCFB",
+        ownerUserId: "user-1",
         correlationId: "corr-2"
       },
       mappingEngine,
