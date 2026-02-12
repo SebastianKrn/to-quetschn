@@ -23,13 +23,18 @@ pnpm benchmark
 
 - Strict failure mode:
 ```bash
-pnpm benchmark -- --strict
+pnpm benchmark --strict
 ```
 
 - JSON summary output:
 ```bash
-pnpm benchmark -- --json .artifacts/benchmark-summary.json
+pnpm benchmark --json .artifacts/benchmark-summary.json
 ```
+
+## Threshold Policy
+- Default thresholds are strict (`tokenMatchRatioMin=1`, `requireMeasureCount=true`, `requireTransposeSuggestions=true`).
+- Per-entry threshold overrides are allowed only with a written rationale in the entry `notes`.
+- Synthetic licensed fixtures should keep strict defaults unless parser/mapping variability is intentionally under study.
 
 ## Licensing Guardrails
 - Only `licenseStatus=licensed` entries are executed.

@@ -44,3 +44,18 @@
 - Export status returns non-completed states without download URL.
 - Export status returns signed URL when export is `completed`.
 - Export pipeline marks failed status with typed export error code on render/storage failures.
+
+## Sprint 3 Export History + Benchmark Addendum
+
+### Export History Runtime Coverage
+- `POST /api/arrangements/:id/export` accepts optional `{ force: boolean }`.
+- Non-forced export trigger reuses latest `queued|processing|completed(with artifact)` export state.
+- Forced export trigger always creates a new export attempt and enqueues work.
+- `GET /api/arrangements/:id/exports` requires auth and returns newest-first owner-scoped export history.
+- Worker status transitions synchronize both latest export projection and export history record.
+
+### Benchmark and Workflow Coverage
+- Root benchmark CLI supports strict mode and JSON output from root commands.
+- Benchmark manifest executes at least five licensed entries with explicit skip reasons for non-licensed entries.
+- Benchmark fixtures include parser-path coverage (`json`, `musicxml`, `delimited`) and all supported tunings.
+- Docker smoke runbook exists and is executable in Docker-enabled environments (`scripts/docker-smoke.sh`).

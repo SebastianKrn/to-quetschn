@@ -12,9 +12,10 @@ Agent-optimized monorepo bootstrap for GriffTab (Standard notation -> Griffschri
 - Storage: S3-compatible (MinIO in local compose)
 - Observability: Sentry + structured JSON logs
 
-## Runtime Status (2026-02-11)
+## Runtime Status (2026-02-12)
 - Sprint 1 runtime slice is complete (auth, conversion queue, OMR, mapping, SVG rendering, persisted API routes).
 - Sprint 2 micro-sprint export slice is complete (queued PDF export pipeline with status polling and signed artifact download URL).
+- Sprint 2 hardening + practice MVP are complete (owner-scoped access, expanded OMR normalization, benchmark harness, practice route/UI).
 - Public sharing remains disabled by default (`FEATURE_PUBLIC_SHARING=false`).
 
 ## Repository Priorities For Agents
@@ -44,4 +45,6 @@ pnpm verify
 
 ## Notes
 - Public sharing of arrangements is feature-flagged off by default until legal track is complete.
-- Current next priorities: Convex/auth production hardening, OMR normalization expansion, benchmark dataset/regression harness, and practice-mode runtime.
+- Sprint 3 priorities: export history retention, benchmark dataset expansion/threshold tuning, Docker smoke validation, and practice v2 scoping.
+- Parallel worktree orchestration runbook: `docs/qa/parallel-worktree-playbook.md`.
+- Docker smoke runbook: `docs/qa/docker-smoke-sprint3.md`.

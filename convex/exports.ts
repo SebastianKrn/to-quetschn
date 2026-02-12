@@ -60,62 +60,67 @@ export const requestLatestExport = mutation({
   args: {
     arrangementId: v.string(),
     correlationId: v.string(),
-    ownerUserId: v.string()
+    ownerUserId: v.string(),
+    force: v.optional(v.boolean())
   },
   returns: v.object({
     job: exportJobValidator,
     shouldEnqueue: v.boolean()
   }),
   handler: async (ctx, args) => {
-    let existing = await ctx.db
+    const force = args.force ?? false;
+    let latest = await ctx.db
       .query("exports")
       .withIndex("by_arrangement_id", (q) => q.eq("arrangementId", args.arrangementId))
       .unique();
 
-    if (existing?.ownerUserId && existing.ownerUserId !== args.ownerUserId) {
+    if (latest?.ownerUserId && latest.ownerUserId !== args.ownerUserId) {
       throw new Error("Export state for this arrangement belongs to another user");
     }
 
-    if (existing && !existing.ownerUserId) {
-      await ctx.db.patch(existing._id, {
+    if (latest && !latest.ownerUserId) {
+      await ctx.db.patch(latest._id, {
         ownerUserId: args.ownerUserId
       });
-      existing = await ctx.db.get(existing._id);
+      latest = await ctx.db.get(latest._id);
     }
 
-    if (existing) {
+    if (latest && !force) {
       const reusable =
-        existing.status === "queued" ||
-        existing.status === "processing" ||
-        (existing.status === "completed" && existing.artifactKey !== null);
+        latest.status === "queued" ||
+        latest.status === "processing" ||
+        (latest.status === "completed" && latest.artifactKey !== null);
 
       if (reusable) {
         return {
-          job: toExportJob(existing),
+          job: toExportJob(latest),
           shouldEnqueue: false
         };
       }
     }
 
     const now = new Date().toISOString();
+    const exportId = generateExportId();
     const payload = {
-      ownerUserId: existing?.ownerUserId ?? args.ownerUserId,
-      exportId: existing?.exportId ?? generateExportId(),
+      ownerUserId: latest?.ownerUserId ?? args.ownerUserId,
+      exportId,
       arrangementId: args.arrangementId,
       status: "queued" as const,
       format: "pdf" as const,
       artifactKey: null,
       errorCode: null,
       correlationId: args.correlationId,
-      createdAt: existing?.createdAt ?? now,
+      createdAt: now,
       updatedAt: now
     };
 
-    if (!existing) {
+    if (!latest) {
       await ctx.db.insert("exports", payload);
     } else {
-      await ctx.db.patch(existing._id, payload);
+      await ctx.db.patch(latest._id, payload);
     }
+
+    await ctx.db.insert("exportHistory", payload);
 
     return {
       job: toExportJob(payload),
@@ -131,30 +136,95 @@ export const getLatestExportByArrangement = query({
   },
   returns: v.union(exportJobValidator, v.null()),
   handler: async (ctx, args) => {
-    const existing = await ctx.db
+    const latest = await ctx.db
       .query("exports")
       .withIndex("by_arrangement_id", (q) => q.eq("arrangementId", args.arrangementId))
       .unique();
 
-    if (!existing) {
+    if (!latest) {
       return null;
     }
 
-    if (existing.ownerUserId && existing.ownerUserId !== args.ownerUserId) {
+    if (latest.ownerUserId && latest.ownerUserId !== args.ownerUserId) {
       return null;
     }
 
-    if (!existing.ownerUserId) {
-      await ctx.db.patch(existing._id, {
-        ownerUserId: args.ownerUserId
-      });
-      const claimed = await ctx.db.get(existing._id);
-      return claimed ? toExportJob(claimed) : null;
-    }
-
-    return toExportJob(existing);
+    return toExportJob(latest);
   }
 });
+
+export const listExportsByArrangement = query({
+  args: {
+    arrangementId: v.string(),
+    ownerUserId: v.string(),
+    limit: v.optional(v.number())
+  },
+  returns: v.array(exportJobValidator),
+  handler: async (ctx, args) => {
+    const limit = Math.max(1, Math.min(args.limit ?? 20, 50));
+
+    const history = await ctx.db
+      .query("exportHistory")
+      .withIndex("by_arrangement_id", (q) => q.eq("arrangementId", args.arrangementId))
+      .order("desc")
+      .take(limit);
+
+    return history
+      .filter((entry) => !entry.ownerUserId || entry.ownerUserId === args.ownerUserId)
+      .map((entry) => toExportJob(entry));
+  }
+});
+
+async function patchLatestByExportId(
+  ctx: any,
+  input: {
+    exportId: string;
+    patch: {
+      status: "processing" | "completed" | "failed";
+      artifactKey?: string | null;
+      errorCode?:
+        | "EXPORT_RENDER_FAILED"
+        | "EXPORT_STORAGE_FAILED"
+        | "EXPORT_ARRANGEMENT_NOT_FOUND"
+        | "EXPORT_UNKNOWN_ERROR"
+        | null;
+      updatedAt: string;
+    };
+  }
+): Promise<ReturnType<typeof toExportJob> | null> {
+  const latest = await ctx.db
+    .query("exports")
+    .withIndex("by_export_id", (q) => q.eq("exportId", input.exportId))
+    .unique();
+
+  const history = await ctx.db
+    .query("exportHistory")
+    .withIndex("by_export_id", (q) => q.eq("exportId", input.exportId))
+    .unique();
+
+  if (!latest && !history) {
+    return null;
+  }
+
+  let updatedLatest = null;
+  let updatedHistory = null;
+
+  if (latest) {
+    await ctx.db.patch(latest._id, input.patch);
+    updatedLatest = await ctx.db.get(latest._id);
+  }
+
+  if (history) {
+    await ctx.db.patch(history._id, input.patch);
+    updatedHistory = await ctx.db.get(history._id);
+  }
+
+  if (updatedLatest) {
+    return toExportJob(updatedLatest);
+  }
+
+  return updatedHistory ? toExportJob(updatedHistory) : null;
+}
 
 export const markExportProcessing = mutation({
   args: {
@@ -162,23 +232,15 @@ export const markExportProcessing = mutation({
   },
   returns: v.union(exportJobValidator, v.null()),
   handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("exports")
-      .withIndex("by_export_id", (q) => q.eq("exportId", args.exportId))
-      .unique();
-
-    if (!existing) {
-      return null;
-    }
-
-    await ctx.db.patch(existing._id, {
-      status: "processing",
-      errorCode: null,
-      updatedAt: new Date().toISOString()
+    const now = new Date().toISOString();
+    return patchLatestByExportId(ctx, {
+      exportId: args.exportId,
+      patch: {
+        status: "processing",
+        errorCode: null,
+        updatedAt: now
+      }
     });
-
-    const updated = await ctx.db.get(existing._id);
-    return updated ? toExportJob(updated) : null;
   }
 });
 
@@ -189,24 +251,16 @@ export const markExportCompleted = mutation({
   },
   returns: v.union(exportJobValidator, v.null()),
   handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("exports")
-      .withIndex("by_export_id", (q) => q.eq("exportId", args.exportId))
-      .unique();
-
-    if (!existing) {
-      return null;
-    }
-
-    await ctx.db.patch(existing._id, {
-      status: "completed",
-      artifactKey: args.artifactKey,
-      errorCode: null,
-      updatedAt: new Date().toISOString()
+    const now = new Date().toISOString();
+    return patchLatestByExportId(ctx, {
+      exportId: args.exportId,
+      patch: {
+        status: "completed",
+        artifactKey: args.artifactKey,
+        errorCode: null,
+        updatedAt: now
+      }
     });
-
-    const updated = await ctx.db.get(existing._id);
-    return updated ? toExportJob(updated) : null;
   }
 });
 
@@ -217,23 +271,15 @@ export const markExportFailed = mutation({
   },
   returns: v.union(exportJobValidator, v.null()),
   handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("exports")
-      .withIndex("by_export_id", (q) => q.eq("exportId", args.exportId))
-      .unique();
-
-    if (!existing) {
-      return null;
-    }
-
-    await ctx.db.patch(existing._id, {
-      status: "failed",
-      artifactKey: null,
-      errorCode: args.errorCode,
-      updatedAt: new Date().toISOString()
+    const now = new Date().toISOString();
+    return patchLatestByExportId(ctx, {
+      exportId: args.exportId,
+      patch: {
+        status: "failed",
+        artifactKey: null,
+        errorCode: args.errorCode,
+        updatedAt: now
+      }
     });
-
-    const updated = await ctx.db.get(existing._id);
-    return updated ? toExportJob(updated) : null;
   }
 });

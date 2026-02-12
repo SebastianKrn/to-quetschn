@@ -50,11 +50,13 @@ export interface DomainStore {
     arrangementId: string;
     correlationId: string;
     ownerUserId: string;
+    force?: boolean;
   }): Promise<{
     job: ExportJob;
     shouldEnqueue: boolean;
   }>;
   getLatestExportByArrangement(arrangementId: string, ownerUserId: string): Promise<ExportJob | null>;
+  listExportsByArrangement(arrangementId: string, ownerUserId: string, limit?: number): Promise<ExportJob[]>;
 }
 
 interface StoredConversion {
@@ -81,7 +83,8 @@ interface StoredExport {
 const memory = {
   conversions: new Map<string, StoredConversion>(),
   arrangements: new Map<string, StoredArrangement>(),
-  exportsByArrangement: new Map<string, StoredExport>()
+  exportsByArrangement: new Map<string, StoredExport>(),
+  exportHistoryByArrangement: new Map<string, StoredExport[]>()
 };
 
 function nowIso(): string {
@@ -165,6 +168,31 @@ class MemoryDomainStore implements DomainStore {
     }
 
     return stored;
+  }
+
+  private listClaimedHistory(input: {
+    arrangementId: string;
+    ownerUserId: string;
+  }): StoredExport[] {
+    const history = memory.exportHistoryByArrangement.get(input.arrangementId) ?? [];
+    let changed = false;
+    const claimed = history.map((entry) => {
+      if (entry.ownerUserId) {
+        return entry;
+      }
+
+      changed = true;
+      return {
+        ...entry,
+        ownerUserId: input.ownerUserId
+      };
+    });
+
+    if (changed) {
+      memory.exportHistoryByArrangement.set(input.arrangementId, claimed);
+    }
+
+    return claimed.filter((entry) => assertOwnerAccess(entry.ownerUserId, input.ownerUserId));
   }
 
   async createConversion(input: {
@@ -328,6 +356,7 @@ class MemoryDomainStore implements DomainStore {
     arrangementId: string;
     correlationId: string;
     ownerUserId: string;
+    force?: boolean;
   }): Promise<{
     job: ExportJob;
     shouldEnqueue: boolean;
@@ -337,7 +366,7 @@ class MemoryDomainStore implements DomainStore {
       ownerUserId: input.ownerUserId
     });
 
-    if (existing) {
+    if (existing && !input.force) {
       const reusable =
         existing.job.status === "queued" ||
         existing.job.status === "processing" ||
@@ -353,21 +382,25 @@ class MemoryDomainStore implements DomainStore {
 
     const now = nowIso();
     const exportJob = ExportJobSchema.parse({
-      id: existing?.job.id ?? `export-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+      id: `export-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
       arrangementId: input.arrangementId,
       status: "queued",
       format: "pdf",
       artifactKey: null,
       errorCode: null,
-      createdAt: existing?.job.createdAt ?? now,
+      createdAt: now,
       updatedAt: now
     });
 
-    memory.exportsByArrangement.set(input.arrangementId, {
+    const stored = {
       ownerUserId: existing?.ownerUserId ?? input.ownerUserId,
       job: exportJob,
       correlationId: input.correlationId
-    });
+    };
+
+    memory.exportsByArrangement.set(input.arrangementId, stored);
+    const history = memory.exportHistoryByArrangement.get(input.arrangementId) ?? [];
+    memory.exportHistoryByArrangement.set(input.arrangementId, [stored, ...history]);
 
     return {
       job: exportJob,
@@ -378,6 +411,16 @@ class MemoryDomainStore implements DomainStore {
   async getLatestExportByArrangement(arrangementId: string, ownerUserId: string): Promise<ExportJob | null> {
     const claimed = this.claimExportOwner({ arrangementId, ownerUserId });
     return claimed?.job ?? null;
+  }
+
+  async listExportsByArrangement(arrangementId: string, ownerUserId: string, limit = 20): Promise<ExportJob[]> {
+    const clampedLimit = Math.max(1, Math.min(limit, 50));
+    const history = this.listClaimedHistory({
+      arrangementId,
+      ownerUserId
+    });
+
+    return history.slice(0, clampedLimit).map((entry) => entry.job);
   }
 }
 
@@ -557,6 +600,7 @@ class ConvexDomainStore extends MemoryDomainStore {
     arrangementId: string;
     correlationId: string;
     ownerUserId: string;
+    force?: boolean;
   }): Promise<{
     job: ExportJob;
     shouldEnqueue: boolean;
@@ -588,6 +632,21 @@ class ConvexDomainStore extends MemoryDomainStore {
         return remote ? ExportJobSchema.parse(remote) : null;
       },
       fallback: () => super.getLatestExportByArrangement(arrangementId, ownerUserId)
+    });
+  }
+
+  override async listExportsByArrangement(arrangementId: string, ownerUserId: string, limit?: number): Promise<ExportJob[]> {
+    return this.withFallback({
+      operationName: "listExportsByArrangement",
+      operation: async () => {
+        const remote = await this.callQuery<ExportJob[]>("exports:listExportsByArrangement", {
+          arrangementId,
+          ownerUserId,
+          limit
+        });
+        return remote.map((entry) => ExportJobSchema.parse(entry));
+      },
+      fallback: () => super.listExportsByArrangement(arrangementId, ownerUserId, limit)
     });
   }
 }

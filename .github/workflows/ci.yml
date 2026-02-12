@@ -43,7 +43,7 @@ jobs:
         run: pnpm build
 
       - name: Benchmark (advisory)
-        run: pnpm benchmark -- --json .artifacts/benchmark-summary.json
+        run: pnpm benchmark --json .artifacts/benchmark-summary.json
         continue-on-error: true
 
       - name: Upload benchmark summary

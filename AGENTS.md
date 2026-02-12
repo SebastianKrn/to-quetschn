@@ -46,3 +46,21 @@ Use project skills from `.agents/skills/*` when task trigger matches skill descr
   - export history model decision (latest-only vs historical retention)
   - Docker-enabled compose/deployment smoke validation
   - practice-mode v2 scoping (looping/shortcuts/MIDI-audio follow-up)
+
+## Parallel Worktree Protocol (Sprint 3)
+- Session A (main/orchestrator cwd): `/Users/skern/Work/projects-01/to-quetschn`
+- Session B (benchmark/docker cwd): `/Users/skern/Work/projects-01/to-quetschn-bench`
+- Setup commands:
+  - `git fetch origin`
+  - `git switch main`
+  - `git pull --ff-only`
+  - `git switch -c codex/feat/sprint3-export-history`
+  - `git worktree add /Users/skern/Work/projects-01/to-quetschn-bench -b codex/feat/sprint3-benchmark-docker origin/main`
+- Ownership:
+  - Session A owns export model/API, ADR updates, and final updates to `memory.md`, `PROJECT_SPEC.md`, `PROJECT_PLAN.md`.
+  - Session B owns benchmark fixtures/thresholds, benchmark command fixes, and Docker smoke docs/artifacts.
+  - Session B must not edit `memory.md`, `PROJECT_SPEC.md`, `PROJECT_PLAN.md`.
+- Merge flow:
+  - Merge Session B branch first.
+  - Rebase Session A branch onto updated `main`.
+  - Merge Session A branch.

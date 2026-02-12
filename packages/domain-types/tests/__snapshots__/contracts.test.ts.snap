@@ -26,5 +26,9 @@ exports[`domain contracts > matches api contract snapshot 1`] = `
     "method": "GET",
     "path": "/api/conversions/:id",
   },
+  "listArrangementExports": {
+    "method": "GET",
+    "path": "/api/arrangements/:id/exports",
+  },
 }
 `;

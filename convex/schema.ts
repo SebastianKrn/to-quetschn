@@ -69,5 +69,30 @@ export default defineSchema({
     updatedAt: v.string()
   })
     .index("by_export_id", ["exportId"])
+    .index("by_arrangement_id", ["arrangementId"]),
+  exportHistory: defineTable({
+    ownerUserId: v.optional(v.string()),
+    exportId: v.string(),
+    arrangementId: v.string(),
+    status: v.union(
+      v.literal("queued"),
+      v.literal("processing"),
+      v.literal("completed"),
+      v.literal("failed")
+    ),
+    format: v.literal("pdf"),
+    artifactKey: v.union(v.string(), v.null()),
+    errorCode: v.union(
+      v.literal("EXPORT_RENDER_FAILED"),
+      v.literal("EXPORT_STORAGE_FAILED"),
+      v.literal("EXPORT_ARRANGEMENT_NOT_FOUND"),
+      v.literal("EXPORT_UNKNOWN_ERROR"),
+      v.null()
+    ),
+    correlationId: v.string(),
+    createdAt: v.string(),
+    updatedAt: v.string()
+  })
+    .index("by_export_id", ["exportId"])
     .index("by_arrangement_id", ["arrangementId"])
 });

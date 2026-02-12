@@ -1,16 +1,81 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "GriffTab benchmark manifest for OMR normalization and mapping regression",
   "entries": [
     {
       "id": "sample-licensed-001",
-      "title": "Licensed synthetic benchmark",
+      "title": "Licensed synthetic benchmark (MusicXML, GCFB)",
       "sourcePdf": "benchmarks/pdfs/sample-licensed-001.pdf",
       "normalizedInput": "benchmarks/normalized/sample-licensed-001.musicxml",
       "expectedJson": "benchmarks/expected/sample-licensed-001.json",
       "tuning": "GCFB",
       "licenseStatus": "licensed",
-      "notes": "Synthetic fixture for harness validation"
+      "notes": "MusicXML parser coverage baseline",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-002",
+      "title": "Licensed synthetic benchmark (JSON, ADGC)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-002.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-002.json",
+      "expectedJson": "benchmarks/expected/sample-licensed-002.json",
+      "tuning": "ADGC",
+      "licenseStatus": "licensed",
+      "notes": "JSON parser coverage with ADGC mapping expectations",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-003",
+      "title": "Licensed synthetic benchmark (JSON, BEADG)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-003.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-003.json",
+      "expectedJson": "benchmarks/expected/sample-licensed-003.json",
+      "tuning": "BEADG",
+      "licenseStatus": "licensed",
+      "notes": "JSON parser coverage with expected transpose suggestions for partial playability",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-004",
+      "title": "Licensed synthetic benchmark (JSON, CFBB)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-004.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-004.json",
+      "expectedJson": "benchmarks/expected/sample-licensed-004.json",
+      "tuning": "CFBB",
+      "licenseStatus": "licensed",
+      "notes": "JSON parser coverage with CFBB token mapping expectations",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-005",
+      "title": "Licensed synthetic benchmark (Delimited, GCFB)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-005.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-005.txt",
+      "expectedJson": "benchmarks/expected/sample-licensed-005.json",
+      "tuning": "GCFB",
+      "licenseStatus": "licensed",
+      "notes": "Delimited fallback parser coverage with strict token matching",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
     },
     {
       "id": "sample-001",

@@ -90,6 +90,9 @@ function createStore(): DomainStore {
     },
     async getLatestExportByArrangement() {
       return null;
+    },
+    async listExportsByArrangement() {
+      return [];
     }
   };
 }

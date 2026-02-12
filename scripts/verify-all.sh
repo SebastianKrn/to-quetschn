@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-pnpm validate:skills
-pnpm validate:memory
+pnpm test
 pnpm lint
 pnpm typecheck
-pnpm test
 pnpm build
+pnpm validate:skills
+pnpm validate:memory

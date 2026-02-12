@@ -5,7 +5,10 @@ import { setQueueClientForTests } from "@/lib/queue";
 import { setStorageClientForTests } from "@/lib/storage";
 
 describe("/api/arrangements/:id/export", () => {
+  let requestLatestExportCalls: Array<{ force?: boolean }> = [];
+
   beforeEach(() => {
+    requestLatestExportCalls = [];
     setDomainStoreForTests({
       async createConversion() {
         throw new Error("not used");
@@ -36,6 +39,7 @@ describe("/api/arrangements/:id/export", () => {
         };
       },
       async requestLatestExport(input) {
+        requestLatestExportCalls.push({ force: input.force });
         return {
           job: {
             id: "export-1",
@@ -61,6 +65,9 @@ describe("/api/arrangements/:id/export", () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
+      },
+      async listExportsByArrangement() {
+        return [];
       }
     });
 
@@ -141,6 +148,42 @@ describe("/api/arrangements/:id/export", () => {
     expect(body.enqueued).toBe(true);
     expect(body.queueJobId).toBe("queue-export-1");
     expect(body.export.status).toBe("queued");
+    expect(requestLatestExportCalls).toEqual([{ force: false }]);
+  });
+
+  it("supports force re-export requests", async () => {
+    const request = new Request("http://localhost/api/arrangements/a1/export", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-dev-user-id": "dev-user"
+      },
+      body: JSON.stringify({ force: true })
+    });
+
+    const response = await POST(request, {
+      params: { id: "a1" }
+    });
+
+    expect(response.status).toBe(200);
+    expect(requestLatestExportCalls.at(-1)).toEqual({ force: true });
+  });
+
+  it("rejects invalid export trigger payloads", async () => {
+    const request = new Request("http://localhost/api/arrangements/a1/export", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-dev-user-id": "dev-user"
+      },
+      body: JSON.stringify({ force: "yes" })
+    });
+
+    const response = await POST(request, {
+      params: { id: "a1" }
+    });
+
+    expect(response.status).toBe(400);
   });
 
   it("returns signed download urls for completed exports", async () => {
@@ -203,6 +246,9 @@ describe("/api/arrangements/:id/export", () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
+      },
+      async listExportsByArrangement() {
+        return [];
       }
     });
 

@@ -30,6 +30,9 @@ describe("POST /api/conversions/:id/confirm-transpose", () => {
       async getLatestExportByArrangement() {
         return null;
       },
+      async listExportsByArrangement() {
+        return [];
+      },
       async confirmTranspose(input) {
         return {
           job: {

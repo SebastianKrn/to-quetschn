@@ -1,14 +1,16 @@
 # GriffTab Project Specification (Normalized)
 
 Last updated: 2026-02-12
-Status: Sprint 2 hardening + practice runtime MVP completed
+Status: Sprint 3 export history + benchmark confidence + workflow orchestration completed
 
 ## Implementation Status (Current)
 - Foundation scaffold remains verified and intact.
 - Sprint 1 runtime is implemented across auth, queue, OMR, mapping, renderer, and worker orchestration.
 - Conversion and arrangement API routes are authenticated and persistence-backed.
 - Export API is runtime-backed with authenticated trigger (`POST`) and status polling (`GET`).
-- Export jobs are queue-driven and persisted in Convex with latest-per-arrangement status.
+- Export jobs are queue-driven and persisted in Convex with history+latest model:
+  - latest projection per arrangement for status polling
+  - append-only export history records for audit and timeline reads
 - Worker renders baseline printable PDF and uploads artifacts to S3-compatible storage.
 - Convex schema/functions are present for conversion/arrangement runtime persistence.
 - Conversion ingestion supports both multipart PDF upload and JSON `inputFileId` submission.
@@ -19,7 +21,9 @@ Status: Sprint 2 hardening + practice runtime MVP completed
   - server/worker Convex admin auth wiring with deployment-time key requirements
 - OMR normalization pipeline now supports JSON, delimited fallback, and MusicXML payload variants.
 - Benchmark regression harness is implemented with licensed-manifest filtering and advisory CI execution.
+- Benchmark dataset now includes 5 executable licensed fixtures across `GCFB`, `ADGC`, `BEADG`, `CFBB` with strict thresholds.
 - Practice mode runtime MVP is implemented at `/practice/[arrangementId]` with authenticated load, SVG rendering, tempo control, and auto-scroll.
+- Parallel orchestration workflow is documented for dual-session worktree execution.
 - OMR errors are typed and normalized using taxonomy:
   - `OMR_TIMEOUT`
   - `OMR_UNAVAILABLE`
@@ -72,6 +76,7 @@ Excluded in this foundation stage:
 - `Arrangement` canonical model as single source for renderer/editor/export
 - `ConversionQueuePayload` (worker contract)
 - `ExportJob` (latest export runtime state)
+- `ExportHistory` (append-only export attempt records)
 - `ExportQueuePayload` (worker export contract)
 - `OmrError` with typed error code taxonomy
 
@@ -82,14 +87,14 @@ Excluded in this foundation stage:
 - `GET /api/arrangements/:id`
 - `POST /api/arrangements/:id/export`
 - `GET /api/arrangements/:id/export`
+- `GET /api/arrangements/:id/exports`
 - `GET/POST/PATCH/PUT/DELETE /api/auth/[...all]` (BetterAuth handler)
 - `GET /practice/:arrangementId` (authenticated practice runtime page)
 
 ## Open Tracks (Known)
 - Legal and licensing workflow for copyrighted songs
-- Final reference dataset curation (currently partial)
+- Final reference dataset curation (still synthetic-heavy despite broader fixtures)
 - Named music expert reviewer assignment
-- Export history/audit model beyond latest-only per arrangement
 - Production compose validation must still be executed in Docker-enabled environment
-- Benchmark dataset expansion beyond current starter licensed fixture(s)
+- Benchmark threshold tuning on real-world licensed repertoire remains pending
 - Practice mode enhancements (loop ranges, shortcuts, MIDI/audio) remain out of current sprint scope

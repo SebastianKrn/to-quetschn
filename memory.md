@@ -8,6 +8,9 @@ Last updated: 2026-02-12
 - Sprint 2 micro-sprint export slice is implemented with queued PDF generation and status polling API.
 - Sprint 2 hardening priorities are implemented (Convex/auth hardening, OMR normalization expansion, benchmark harness).
 - Practice-mode runtime MVP is implemented with authenticated arrangement playback UI.
+- Sprint 3 export history retention is implemented with latest-projection + append-only history model.
+- Benchmark harness dataset is expanded to 5 executable licensed fixtures across all supported tunings.
+- Parallel worktree orchestration workflow is documented for two-session Codex execution.
 - Public sharing remains blocked by default pending legal completion.
 
 ## Decisions (Locked)
@@ -24,8 +27,10 @@ Last updated: 2026-02-12
 ## Current State
 - API routes are no longer deterministic stubs; conversion + arrangement routes are runtime-backed and authenticated.
 - Worker executes queue jobs and updates conversion states.
-- Export flow is runtime-backed: queue-driven PDF generation, object storage artifact upload, and latest export status persistence.
+- Export flow is runtime-backed: queue-driven PDF generation, object storage artifact upload, latest status projection, and append-only history retention.
 - `GET /api/arrangements/:id/export` now returns live export status and signed download URL for completed artifacts.
+- `GET /api/arrangements/:id/exports` now returns owner-scoped newest-first export history.
+- `POST /api/arrangements/:id/export` now accepts optional `{ force: true }` for explicit re-export attempts.
 - OMR service returns typed failure codes and normalized score payloads.
 - OMR parser pipeline now supports JSON, delimited fallback, and MusicXML normalization inputs.
 - Mapping/renderer packages now provide deterministic v1 implementations with tests.
@@ -33,22 +38,21 @@ Last updated: 2026-02-12
   - stronger secret/config expectations in secure deployments
   - deployment-aware fail-closed Convex auth requirements
   - owner-scoped reads/writes with lazy owner backfill for legacy records
-- Benchmark harness package and CI advisory integration are in place with starter licensed fixtures.
+- Benchmark harness package and CI advisory integration are in place with expanded licensed fixtures and strict threshold defaults.
+- Root benchmark CLI handling now supports both `pnpm benchmark --strict` and forwarded forms like `pnpm benchmark -- --strict`.
 - Practice route `/practice/[arrangementId]` is implemented with tempo slider, play/pause auto-scroll, and mobile-safe layout.
 - Project context docs are synchronized to include hardening + practice completion (`PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `memory.md`).
 
 ## Open Risks
-- Export persistence is intentionally latest-only per arrangement (no historical export audit trail yet).
 - Docker CLI unavailable in this execution environment, so compose config validation could not run here.
-- Benchmark dataset coverage is still small; regression confidence depends on growing licensed fixtures.
+- Benchmark dataset remains synthetic-heavy; thresholds still need calibration against broader licensed repertoire.
 - Practice runtime remains MVP-only (no loop editor, shortcuts, or MIDI/audio integration).
 
 ## Next Actions
-1. Expand benchmark dataset with more licensed fixtures and calibrate thresholds from real runs.
-2. Decide whether to add export-history retention beyond latest-only model.
-3. Run Docker compose validation in Docker-enabled environment and record smoke results.
-4. Plan practice-mode v2 enhancements behind explicit scope gates.
-5. Continue legal/licensing workflow and reviewer assignment.
+1. Run Docker compose smoke validation in a Docker-enabled environment and archive evidence.
+2. Calibrate benchmark thresholds using broader real licensed fixtures beyond synthetic starter cases.
+3. Plan practice-mode v2 enhancements behind explicit scope gates.
+4. Continue legal/licensing workflow and reviewer assignment.
 
 ## Session Log Template
 ### YYYY-MM-DD
@@ -91,11 +95,20 @@ Last updated: 2026-02-12
   - `pnpm lint`
   - `pnpm typecheck`
   - `pnpm build`
+- Implemented Sprint 3 export history + benchmark confidence + workflow orchestration:
+  - added history+latest export persistence model and new route `GET /api/arrangements/:id/exports`
+  - added force re-export support via `POST /api/arrangements/:id/export` body `{ force: true }`
+  - expanded benchmark manifest to 5 licensed executable fixtures across all supported tunings
+  - fixed benchmark CLI forwarding handling and CI benchmark JSON invocation
+  - added `scripts/docker-smoke.sh` and Sprint 3 Docker smoke runbook
+  - added parallel worktree orchestration playbook + AGENTS/CLAUDE workflow protocol updates
 - Decisions made:
 - Kept benchmark CI advisory/non-blocking for now with future strict-mode path.
 - Kept practice scope intentionally bounded to MVP runtime behavior only.
+- Adopted export history retention model as history+latest (ADR-0007).
 - Blockers:
 - Local policy in this environment blocks branch deletion commands (`git branch -d`), so merged feature branches could not be removed locally here.
+- Docker CLI unavailable in this environment (`docker: command not found`), so Sprint 3 smoke script could not be executed here.
 - Next:
-- Clean up merged local branches in an environment where branch-deletion policy permits `git branch -d`.
-- Continue benchmark dataset expansion and Docker-enabled deployment validation.
+- Execute `./scripts/docker-smoke.sh` in a Docker-enabled host and attach results.
+- Continue threshold tuning on broader licensed repertoire.

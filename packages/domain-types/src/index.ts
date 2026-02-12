@@ -155,6 +155,23 @@ export const ExportJobSchema = z.object({
 });
 export type ExportJob = z.infer<typeof ExportJobSchema>;
 
+export const ExportArrangementRequestSchema = z
+  .object({
+    force: z.boolean().optional()
+  })
+  .default({});
+export type ExportArrangementRequest = z.infer<typeof ExportArrangementRequestSchema>;
+
+export const ListArrangementExportsQuerySchema = z.object({
+  limit: z.number().int().min(1).max(50).optional()
+});
+export type ListArrangementExportsQuery = z.infer<typeof ListArrangementExportsQuerySchema>;
+
+export const ExportHistoryResponseSchema = z.object({
+  exports: z.array(ExportJobSchema)
+});
+export type ExportHistoryResponse = z.infer<typeof ExportHistoryResponseSchema>;
+
 export const ExportQueuePayloadSchema = z.object({
   exportId: z.string().min(1),
   arrangementId: z.string().min(1),
@@ -211,5 +228,6 @@ export const ApiContracts = {
   },
   getArrangement: { method: "GET", path: "/api/arrangements/:id" },
   exportArrangement: { method: "POST", path: "/api/arrangements/:id/export" },
-  getArrangementExport: { method: "GET", path: "/api/arrangements/:id/export" }
+  getArrangementExport: { method: "GET", path: "/api/arrangements/:id/export" },
+  listArrangementExports: { method: "GET", path: "/api/arrangements/:id/exports" }
 } as const;

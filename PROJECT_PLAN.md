@@ -1,4 +1,4 @@
-# GriffTab Execution Plan (Phase 1+2 Foundation)
+# GriffTab Execution Plan (Phase 1+2+3 Foundation)
 
 Last updated: 2026-02-12
 
@@ -72,12 +72,33 @@ Status: Completed (unchanged in Sprint 1)
 - client practice player with tempo control + play/pause auto-scroll
 - German-first UI labels; responsive layout baseline
 
+## Sprint 3 Progress (Implemented)
+1. Export history retention implemented with history+latest model:
+- latest projection preserved for `GET /api/arrangements/:id/export`
+- append-only export history records added for auditability
+- force re-export trigger supported via `POST /api/arrangements/:id/export` body `{ force: true }`
+- new history route `GET /api/arrangements/:id/exports`
+2. Benchmark confidence expanded:
+- manifest expanded to 5 executable licensed fixtures
+- tuning coverage now includes `GCFB`, `ADGC`, `BEADG`, `CFBB`
+- parser coverage includes JSON, MusicXML, and delimited fallback paths
+- strict thresholds documented and enforced per fixture
+3. Benchmark workflow hardening completed:
+- root benchmark CLI now handles forwarded separator args (`--`)
+- CI benchmark step now writes JSON artifact with working root command form
+4. Orchestration workflow hardening completed:
+- added dual-session worktree playbook
+- aligned verify script ordering with declared sprint gate order
+- updated agent workflow docs with ownership and merge protocol
+5. Docker smoke runbook delivered for Docker-enabled execution:
+- added executable `scripts/docker-smoke.sh`
+- captured blocked evidence in this environment (`docker: command not found`)
+
 ## Next Sprint Focus
-1. Expand benchmark dataset with additional licensed fixtures and tune thresholds from observed regressions.
-2. Evaluate export history retention model (beyond latest-only status per arrangement).
-3. Run Docker compose validation in Docker-enabled environment and capture deployment smoke notes.
-4. Plan practice-mode v2 scope (looping, shortcuts, optional MIDI/audio) behind explicit feature boundaries.
-5. Continue legal/licensing workflow and reviewer assignment for broader dataset readiness.
+1. Execute Docker smoke runbook in a Docker-enabled host and archive output evidence.
+2. Tune benchmark thresholds against broader real licensed repertoire (beyond synthetic-heavy set).
+3. Scope and prioritize practice-mode v2 implementation (looping, shortcuts, optional MIDI/audio).
+4. Continue legal/licensing workflow and reviewer assignment for broader dataset readiness.
 
 ## Sprint 2 Micro-Sprint Progress (Implemented)
 1. Added export contracts (`ExportJob`, `ExportQueuePayload`) and export queue topics.

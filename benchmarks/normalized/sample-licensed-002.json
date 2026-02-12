@@ -1,0 +1,10 @@
+{
+  "title": "Licensed ADGC sample",
+  "tempoBpm": 96,
+  "timeSignature": "4/4",
+  "notes": [
+    { "measure": 1, "beat": 0, "pitch": "C4", "duration": "quarter" },
+    { "measure": 1, "beat": 1, "pitch": "D4", "duration": "quarter" },
+    { "measure": 1, "beat": 2, "pitch": "E4", "duration": "quarter" }
+  ]
+}
