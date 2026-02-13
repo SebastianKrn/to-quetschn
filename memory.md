@@ -1,6 +1,6 @@
 # GriffTab Memory
 
-Last updated: 2026-02-12
+Last updated: 2026-02-13
 
 ## Snapshot
 - Foundation scaffold has been advanced to Sprint 1 runtime wiring.
@@ -53,6 +53,24 @@ Last updated: 2026-02-12
 2. Calibrate benchmark thresholds using broader real licensed fixtures beyond synthetic starter cases.
 3. Plan practice-mode v2 enhancements behind explicit scope gates.
 4. Continue legal/licensing workflow and reviewer assignment.
+
+## Next Session Bootstrap
+1. Start on branch `codex/feat/sprint3-export-history` and verify clean state:
+- `git status -sb`
+- `git log --oneline -n 3`
+2. Run baseline checks:
+- `pnpm install`
+- `pnpm validate:skills`
+- `pnpm validate:memory`
+- `pnpm verify`
+3. Run Docker smoke in Docker-enabled host and append results to:
+- `docs/qa/docker-smoke-sprint3.md`
+4. If starting a second parallel session later, use:
+- `docs/qa/parallel-worktree-playbook.md`
+5. Before merge, keep final context sync in one commit touching:
+- `PROJECT_SPEC.md`
+- `PROJECT_PLAN.md`
+- `memory.md`
 
 ## Session Log Template
 ### YYYY-MM-DD
@@ -112,3 +130,16 @@ Last updated: 2026-02-12
 - Next:
 - Execute `./scripts/docker-smoke.sh` in a Docker-enabled host and attach results.
 - Continue threshold tuning on broader licensed repertoire.
+
+### 2026-02-13
+- Completed:
+- Re-ran full verification pipeline via `pnpm verify` on `codex/feat/sprint3-export-history` and confirmed green gates.
+- Finalized sprint-close context sync updates for `PROJECT_SPEC.md`, `PROJECT_PLAN.md`, and `memory.md`.
+- Added explicit next-session bootstrap checklist to reduce startup ambiguity in new Codex sessions.
+- Decisions made:
+- Keep branch as the active handoff branch for follow-up work until Docker smoke evidence is captured.
+- Blockers:
+- Docker still unavailable in this environment, so smoke evidence must be collected externally.
+- Next:
+- Push branch and open/refresh PR for Sprint 3 closure review.
+- Run Docker smoke on a Docker-enabled host and append output evidence.
