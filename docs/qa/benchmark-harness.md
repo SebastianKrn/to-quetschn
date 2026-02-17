@@ -31,10 +31,16 @@ pnpm benchmark --strict
 pnpm benchmark --json .artifacts/benchmark-summary.json
 ```
 
+- Sprint 4 strict evidence artifact:
+```bash
+pnpm benchmark --strict --json .artifacts/benchmark-summary-sprint4.json
+```
+
 ## Threshold Policy
 - Default thresholds are strict (`tokenMatchRatioMin=1`, `requireMeasureCount=true`, `requireTransposeSuggestions=true`).
 - Per-entry threshold overrides are allowed only with a written rationale in the entry `notes`.
 - Synthetic licensed fixtures should keep strict defaults unless parser/mapping variability is intentionally under study.
+- Sprint 4 tuning decision: fixtures `sample-licensed-006..008` were evaluated in strict mode and retained strict defaults with rationale documented in each entry `notes`.
 
 ## Licensing Guardrails
 - Only `licenseStatus=licensed` entries are executed.

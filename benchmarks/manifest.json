@@ -78,6 +78,51 @@
       }
     },
     {
+      "id": "sample-licensed-006",
+      "title": "Licensed synthetic benchmark (JSON, GCFB)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-006.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-006.json",
+      "expectedJson": "benchmarks/expected/sample-licensed-006.json",
+      "tuning": "GCFB",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 4 threshold tuning pass: strict defaults retained after stable repeat runs",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-007",
+      "title": "Licensed synthetic benchmark (MusicXML, CFBB)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-007.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-007.musicxml",
+      "expectedJson": "benchmarks/expected/sample-licensed-007.json",
+      "tuning": "CFBB",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 4 threshold tuning pass: strict defaults retained with MusicXML parser path coverage",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-008",
+      "title": "Licensed synthetic benchmark (Delimited, BEADG)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-008.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-008.txt",
+      "expectedJson": "benchmarks/expected/sample-licensed-008.json",
+      "tuning": "BEADG",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 4 threshold tuning pass: strict defaults retained while validating transpose-suggestion checks",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
       "id": "sample-001",
       "title": "Piraten der Karibik (excerpt)",
       "sourcePdf": "benchmarks/pdfs/sample-001.pdf",

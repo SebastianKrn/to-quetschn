@@ -25,3 +25,13 @@ docker compose -f docker-compose.dev.yml down --remove-orphans
 - Last attempted in this Codex environment: February 12, 2026.
 - Result: blocked (`docker: command not found`).
 - Required follow-up: execute the runbook in a Docker-enabled host/session and attach output evidence.
+
+## Execution Evidence
+
+### 2026-02-17 (Codex environment)
+- Command: `./scripts/docker-smoke.sh`
+- Output:
+  - `[docker-smoke] validating compose config`
+  - `./scripts/docker-smoke.sh: line 14: docker: command not found`
+- Result: blocked in this host (Docker CLI unavailable).
+- Follow-up required: rerun the same command in a Docker-enabled host and append successful health-check output.

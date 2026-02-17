@@ -59,3 +59,16 @@
 - Benchmark manifest executes at least five licensed entries with explicit skip reasons for non-licensed entries.
 - Benchmark fixtures include parser-path coverage (`json`, `musicxml`, `delimited`) and all supported tunings.
 - Docker smoke runbook exists and is executable in Docker-enabled environments (`scripts/docker-smoke.sh`).
+
+## Sprint 4 Practice + Benchmark + Docker Addendum
+
+### Practice v2 Runtime Coverage
+- Practice mode supports loop range controls with inclusive `startMeasure` and `endMeasure`.
+- Practice playback loops deterministically between configured loop bounds while loop mode is active.
+- Keyboard shortcuts are supported: `Space`, `R`, `L`, `ArrowUp`, `ArrowDown`.
+- Keyboard shortcuts are ignored for `input`, `select`, `textarea`, and contenteditable targets.
+
+### Benchmark and Docker Coverage
+- Benchmark manifest executes at least eight licensed entries with explicit skip reasons for non-licensed entries.
+- Strict benchmark run succeeds with `failed=0` and writes `.artifacts/benchmark-summary-sprint4.json`.
+- Docker smoke output evidence is appended to `docs/qa/docker-smoke-sprint3.md` for each dated execution attempt.
