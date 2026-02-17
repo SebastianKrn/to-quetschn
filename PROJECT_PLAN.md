@@ -1,6 +1,6 @@
 # GriffTab Execution Plan (Phase 1+2+3 Foundation)
 
-Last updated: 2026-02-13
+Last updated: 2026-02-17
 
 ## Objective
 Establish a production-ready foundation where coding agents can implement features quickly and safely with minimal ambiguity.
@@ -94,10 +94,27 @@ Status: Completed (unchanged in Sprint 1)
 - added executable `scripts/docker-smoke.sh`
 - captured blocked evidence in this environment (`docker: command not found`)
 
+## Sprint 4 Progress (Implemented)
+1. Practice mode v2 runtime shipped:
+- added loop range controls (`startMeasure`, `endMeasure`) with inclusive bounds
+- implemented deterministic loop playback that jumps back to loop start while active
+- added keyboard shortcuts (`Space`, `L`, `R`, `ArrowUp`, `ArrowDown`) with form-field/contenteditable guardrails
+- expanded practice helper tests for loop normalization, scroll bounds, shortcut stepping, and reset behavior
+2. Benchmark confidence expanded:
+- manifest expanded from 5 to 8 executable licensed fixtures (`sample-licensed-006..008`)
+- maintained strict threshold defaults and documented Sprint 4 tuning rationale in manifest entry notes
+- verified strict benchmark run with artifact output (`.artifacts/benchmark-summary-sprint4.json`)
+3. Benchmark/docs hardening completed:
+- updated benchmark harness QA doc with Sprint 4 strict artifact command and threshold decision notes
+- updated runtime acceptance criteria with Sprint 4 practice + benchmark + docker expectations
+4. Docker smoke evidence updated:
+- executed `./scripts/docker-smoke.sh` in this environment on 2026-02-17
+- recorded blocked output (`docker: command not found`) in `docs/qa/docker-smoke-sprint3.md`
+
 ## Next Sprint Focus
-1. Execute Docker smoke runbook in a Docker-enabled host and archive output evidence.
-2. Tune benchmark thresholds against broader real licensed repertoire (beyond synthetic-heavy set).
-3. Scope and prioritize practice-mode v2 implementation (looping, shortcuts, optional MIDI/audio).
+1. Execute Docker smoke runbook successfully in a Docker-enabled host and archive passing output evidence.
+2. Tune benchmark thresholds against broader real licensed repertoire (beyond synthetic-heavy set of 8 fixtures).
+3. Scope practice-mode audio/MIDI follow-up beyond v2 loop+shortcut capabilities.
 4. Continue legal/licensing workflow and reviewer assignment for broader dataset readiness.
 
 ## Sprint 2 Micro-Sprint Progress (Implemented)

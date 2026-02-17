@@ -1,6 +1,6 @@
 # GriffTab Memory
 
-Last updated: 2026-02-13
+Last updated: 2026-02-17
 
 ## Snapshot
 - Foundation scaffold has been advanced to Sprint 1 runtime wiring.
@@ -9,7 +9,8 @@ Last updated: 2026-02-13
 - Sprint 2 hardening priorities are implemented (Convex/auth hardening, OMR normalization expansion, benchmark harness).
 - Practice-mode runtime MVP is implemented with authenticated arrangement playback UI.
 - Sprint 3 export history retention is implemented with latest-projection + append-only history model.
-- Benchmark harness dataset is expanded to 5 executable licensed fixtures across all supported tunings.
+- Practice-mode v2 is implemented with loop controls, deterministic loop playback, and keyboard shortcuts.
+- Benchmark harness dataset is expanded to 8 executable licensed fixtures across JSON, MusicXML, and delimited parser paths.
 - Parallel worktree orchestration workflow is documented for two-session Codex execution.
 - Public sharing remains blocked by default pending legal completion.
 
@@ -40,22 +41,22 @@ Last updated: 2026-02-13
   - owner-scoped reads/writes with lazy owner backfill for legacy records
 - Benchmark harness package and CI advisory integration are in place with expanded licensed fixtures and strict threshold defaults.
 - Root benchmark CLI handling now supports both `pnpm benchmark --strict` and forwarded forms like `pnpm benchmark -- --strict`.
-- Practice route `/practice/[arrangementId]` is implemented with tempo slider, play/pause auto-scroll, and mobile-safe layout.
+- Practice route `/practice/[arrangementId]` is implemented with tempo slider, play/pause auto-scroll, loop range controls, and keyboard shortcuts.
 - Project context docs are synchronized to include hardening + practice completion (`PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `memory.md`).
 
 ## Open Risks
 - Docker CLI unavailable in this execution environment, so compose config validation could not run here.
 - Benchmark dataset remains synthetic-heavy; thresholds still need calibration against broader licensed repertoire.
-- Practice runtime remains MVP-only (no loop editor, shortcuts, or MIDI/audio integration).
+- Practice runtime still lacks MIDI/audio integration follow-up beyond v2 loop+shortcut scope.
 
 ## Next Actions
-1. Run Docker compose smoke validation in a Docker-enabled environment and archive evidence.
-2. Calibrate benchmark thresholds using broader real licensed fixtures beyond synthetic starter cases.
-3. Plan practice-mode v2 enhancements behind explicit scope gates.
+1. Run Docker compose smoke validation successfully in a Docker-enabled environment and archive passing evidence.
+2. Calibrate benchmark thresholds using broader real licensed fixtures beyond the current synthetic-heavy set.
+3. Scope next practice increment for MIDI/audio follow-up.
 4. Continue legal/licensing workflow and reviewer assignment.
 
 ## Next Session Bootstrap
-1. Start on branch `codex/feat/sprint3-export-history` and verify clean state:
+1. Start from updated `main` after Sprint 4 merges and verify clean state:
 - `git status -sb`
 - `git log --oneline -n 3`
 2. Run baseline checks:
@@ -143,3 +144,30 @@ Last updated: 2026-02-13
 - Next:
 - Push branch and open/refresh PR for Sprint 3 closure review.
 - Run Docker smoke on a Docker-enabled host and append output evidence.
+
+### 2026-02-17
+- Completed:
+- Implemented Sprint 4 practice-mode v2 behavior in web runtime:
+  - loop range controls with inclusive boundaries
+  - deterministic looped auto-scroll playback
+  - keyboard shortcuts (`Space`, `L`, `R`, `ArrowUp`, `ArrowDown`) with editable-target guardrails
+- Expanded benchmark dataset from 5 to 8 licensed executable fixtures (`sample-licensed-006..008`) with strict-threshold rationale in manifest notes.
+- Ran strict benchmark with Sprint 4 artifact output and confirmed pass (`8 passed`, `0 failed`, `1 skipped`).
+- Updated QA docs (`benchmark-harness`, `acceptance-criteria`, `docker-smoke-sprint3`) with Sprint 4 coverage and dated docker evidence.
+- Merged `codex/feat/sprint4-benchmark-docker` into `main`, rebased `codex/feat/sprint4-practice-v2` onto updated `main`, and synced context docs.
+- Passed required gates on both sprint branches:
+  - `pnpm test`
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm build`
+  - `pnpm validate:skills`
+  - `pnpm validate:memory`
+- Decisions made:
+- Kept benchmark CI advisory; strict benchmark remains enforced at branch/manual gate level.
+- Kept strict benchmark thresholds unchanged for Sprint 4 fixtures with documented rationale.
+- Kept practice v2 limited to loop+shortcut scope; deferred MIDI/audio.
+- Blockers:
+- Docker CLI still unavailable in this environment, so smoke run is documented as blocked here and must be rerun in Docker-enabled host.
+- Next:
+- Merge `codex/feat/sprint4-practice-v2` into `main`.
+- Execute `./scripts/docker-smoke.sh` in Docker-enabled host and append successful evidence.

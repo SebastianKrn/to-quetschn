@@ -1,7 +1,7 @@
 # GriffTab Project Specification (Normalized)
 
-Last updated: 2026-02-13
-Status: Sprint 3 export history + benchmark confidence + workflow orchestration completed
+Last updated: 2026-02-17
+Status: Sprint 4 practice v2 + benchmark expansion completed (Docker-enabled smoke success still pending external host)
 
 ## Implementation Status (Current)
 - Foundation scaffold remains verified and intact.
@@ -21,9 +21,10 @@ Status: Sprint 3 export history + benchmark confidence + workflow orchestration 
   - server/worker Convex admin auth wiring with deployment-time key requirements
 - OMR normalization pipeline now supports JSON, delimited fallback, and MusicXML payload variants.
 - Benchmark regression harness is implemented with licensed-manifest filtering and advisory CI execution.
-- Benchmark dataset now includes 5 executable licensed fixtures across `GCFB`, `ADGC`, `BEADG`, `CFBB` with strict thresholds.
-- Practice mode runtime MVP is implemented at `/practice/[arrangementId]` with authenticated load, SVG rendering, tempo control, and auto-scroll.
+- Benchmark dataset now includes 8 executable licensed fixtures across JSON, MusicXML, and delimited parser paths with strict thresholds.
+- Practice mode v2 is implemented at `/practice/[arrangementId]` with authenticated load, SVG rendering, tempo control, loop range controls, deterministic loop playback, and keyboard shortcuts.
 - Parallel orchestration workflow is documented for dual-session worktree execution.
+- Docker smoke runbook evidence is documented for blocked hosts and requires successful execution in a Docker-enabled environment for release proof.
 - OMR errors are typed and normalized using taxonomy:
   - `OMR_TIMEOUT`
   - `OMR_UNAVAILABLE`
@@ -95,6 +96,6 @@ Excluded in this foundation stage:
 - Legal and licensing workflow for copyrighted songs
 - Final reference dataset curation (still synthetic-heavy despite broader fixtures)
 - Named music expert reviewer assignment
-- Production compose validation must still be executed in Docker-enabled environment
+- Production compose validation must still be executed successfully in Docker-enabled environment (current host remains blocked)
 - Benchmark threshold tuning on real-world licensed repertoire remains pending
-- Practice mode enhancements (loop ranges, shortcuts, MIDI/audio) remain out of current sprint scope
+- Practice mode audio/MIDI follow-up remains out of current sprint scope
