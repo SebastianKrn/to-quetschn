@@ -11,5 +11,7 @@
 | REDIS_URL | local redis | internal redis | internal redis | Queue backend |
 | S3_ENDPOINT | minio local | s3-compatible | s3-compatible | Object storage |
 | OMR_SERVICE_URL | local | internal service | internal service | OMR API |
+| OMR_MODE | replay or audiveris | audiveris | audiveris | Replay mode is for deterministic local runs |
+| OMR_REPLAY_MANIFEST_PATH | local replay manifest | optional | optional | Required when `OMR_MODE=replay` |
 | FEATURE_PUBLIC_SHARING | false | false | false | Locked until legal approval |
 | SENTRY_DSN | optional | required | required | Error observability |

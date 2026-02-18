@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "entries": [
+    {
+      "checksumSha256": "b66f256a91bcd4fb7fbdc8cb9b67910c4792bb2c4a1f4d26e4ba41fc7bef7008",
+      "normalizedInput": "./normalized/sample-licensed-001.musicxml",
+      "label": "licensed-set-a"
+    },
+    {
+      "checksumSha256": "ba9fbe0611b5d2e971ff3f88bc1335bcaa44eb600c98efeb5511f8cc9087705c",
+      "normalizedInput": "./normalized/sample-licensed-006.json",
+      "label": "licensed-set-b"
+    }
+  ]
+}

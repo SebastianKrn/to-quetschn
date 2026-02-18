@@ -3,8 +3,13 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import type { OmrProvider } from "@grifftab/domain-types";
 import { OmrErrorSchema, OmrScoreSchema } from "@grifftab/domain-types";
-import { AudiverisOmrProvider, OmrProviderError } from "@grifftab/omr-provider";
+import {
+  AudiverisOmrProvider,
+  OmrProviderError,
+  ReplayOmrProvider
+} from "@grifftab/omr-provider";
 import { getOmrEnv } from "./env.js";
 
 const env = getOmrEnv();
@@ -12,10 +17,20 @@ const app = express();
 
 app.use(express.json({ limit: "10mb" }));
 
-const provider = new AudiverisOmrProvider({
-  binPath: env.AUDIVERIS_BIN,
-  timeoutMs: env.AUDIVERIS_TIMEOUT_MS
-});
+function createProvider(): OmrProvider {
+  if (env.OMR_MODE === "replay") {
+    return new ReplayOmrProvider({
+      manifestPath: env.OMR_REPLAY_MANIFEST_PATH
+    });
+  }
+
+  return new AudiverisOmrProvider({
+    binPath: env.AUDIVERIS_BIN,
+    timeoutMs: env.AUDIVERIS_TIMEOUT_MS
+  });
+}
+
+const provider = createProvider();
 
 async function materializePdfSource(source: string): Promise<{
   sourceFilePath: string;
@@ -49,7 +64,8 @@ app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     service: "omr-service",
-    provider: env.OMR_PROVIDER,
+    provider: env.OMR_MODE === "replay" ? "replay" : env.OMR_PROVIDER,
+    mode: env.OMR_MODE,
     timeoutMs: env.AUDIVERIS_TIMEOUT_MS
   });
 });

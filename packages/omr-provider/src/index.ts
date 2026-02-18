@@ -168,5 +168,6 @@ export class AudiverisOmrProvider implements OmrProvider {
   }
 }
 
+export { ReplayOmrProvider, type ReplayOmrProviderOptions } from "./replay.js";
 export { normalizeAudiverisOutput, normalizeAudiverisOutputDetailed } from "./normalize.js";
 export { OmrProviderError } from "./errors.js";
