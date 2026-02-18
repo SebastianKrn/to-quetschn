@@ -7,6 +7,7 @@ import {
   type DomainStore
 } from "@/lib/convex";
 import { setQueueClientForTests } from "@/lib/queue";
+import { setStorageClientForTests } from "@/lib/storage";
 
 function createStore(): DomainStore {
   const conversions = new Map<string, ConversionRuntime>();
@@ -108,11 +109,23 @@ describe("POST /api/conversions", () => {
         return { id: "queue-export-unused" };
       }
     });
+    setStorageClientForTests({
+      async putObject(input) {
+        return { key: input.key };
+      },
+      async getSignedUrl() {
+        return { url: "https://signed.example/source.pdf" };
+      },
+      async deleteObject() {
+        return undefined;
+      }
+    });
   });
 
   afterEach(() => {
     setDomainStoreForTests(null);
     setQueueClientForTests(null);
+    setStorageClientForTests(null);
   });
 
   it("rejects unauthenticated requests", async () => {
@@ -148,6 +161,39 @@ describe("POST /api/conversions", () => {
     expect(response.status).toBe(200);
     expect(body.ok).toBe(true);
     expect(body.job.inputFileId).toBe("file-1");
+    expect(body.job.status).toBe("queued");
+    expect(body.queueJobId).toBe("queue-1");
+  });
+
+  it("accepts multipart requests with uploaded pdf", async () => {
+    const formData = new FormData();
+    formData.set(
+      "file",
+      new File([Buffer.from("%PDF-1.7\n%fixture\n")], "fixture.pdf", {
+        type: "application/pdf"
+      })
+    );
+    formData.set("tuning", "ADGC");
+
+    const request = new Request("http://localhost/api/conversions", {
+      method: "POST",
+      headers: {
+        "x-dev-user-id": "dev-user"
+      },
+      body: formData
+    });
+
+    const response = await POST(request);
+    const body = (await response.json()) as {
+      ok: boolean;
+      job: { inputFileId: string; tuning: string; status: string };
+      queueJobId: string;
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.ok).toBe(true);
+    expect(body.job.inputFileId.startsWith("conversions/")).toBe(true);
+    expect(body.job.tuning).toBe("ADGC");
     expect(body.job.status).toBe("queued");
     expect(body.queueJobId).toBe("queue-1");
   });
