@@ -1,6 +1,6 @@
 # GriffTab Execution Plan (Phase 1+2+3 Foundation)
 
-Last updated: 2026-02-17
+Last updated: 2026-02-18
 
 ## Objective
 Establish a production-ready foundation where coding agents can implement features quickly and safely with minimal ambiguity.
@@ -112,11 +112,33 @@ Status: Completed (unchanged in Sprint 1)
 - executed `./scripts/docker-smoke.sh` in this environment on 2026-02-17
 - recorded blocked output (`docker: command not found`) in `docs/qa/docker-smoke-sprint3.md`
 
+## Sprint 5 Progress (Implemented So Far)
+1. Workflow cleanup completed:
+- retired parallel worktree protocol and aligned docs to single-session sequential branching
+- added explicit branch hygiene guidance and `.artifacts/` ignore policy
+2. Hybrid OMR runtime completed:
+- added replay provider in `@grifftab/omr-provider`
+- added OMR mode selection in OMR service via `OMR_MODE=replay|audiveris`
+- added ADR-0008 and replay manifest baseline
+3. MVP core flow dashboard completed:
+- replaced scaffold home page with German-first dashboard (upload, status polling, transpose confirm, practice, export)
+- added conversion route tests for polling/multipart behavior
+4. Token correction editor slice completed:
+- added owner-scoped `PATCH /api/arrangements/:id` contract + route + Convex mutation
+- added domain contract `UpdateArrangementTokenRequestSchema` and `ApiContracts.updateArrangement`
+- wired practice UI token selection/edit/save flow and renderer token metadata
+- added arrangement patch API tests and updated route test stubs
+
 ## Next Sprint Focus
-1. Execute Docker smoke runbook successfully in a Docker-enabled host and archive passing output evidence.
-2. Tune benchmark thresholds against broader real licensed repertoire (beyond synthetic-heavy set of 8 fixtures).
-3. Scope practice-mode audio/MIDI follow-up beyond v2 loop+shortcut capabilities.
+1. Deliver local realistic scenario automation:
+- add `pnpm mvp:infra:up`, `pnpm mvp:apps:up`, `pnpm mvp:scenario`, `pnpm mvp:down`
+- add Playwright smoke for convert -> practice -> token edit -> export, writing `.artifacts/mvp-scenario-summary.json`
+2. Harden benchmark gate to MVP bar:
+- expand manifest from 8 to 12 licensed fixtures with tuning/parser spread
+- switch CI benchmark step to strict blocking (`pnpm benchmark --strict --json .artifacts/benchmark-summary.json`)
+3. Execute Docker smoke runbook successfully in a Docker-enabled host and archive passing output evidence.
 4. Continue legal/licensing workflow and reviewer assignment for broader dataset readiness.
+5. Scope practice-mode audio/MIDI follow-up beyond v2 loop+shortcut capabilities after MVP local GA criteria are met.
 
 ## Sprint 2 Micro-Sprint Progress (Implemented)
 1. Added export contracts (`ExportJob`, `ExportQueuePayload`) and export queue topics.

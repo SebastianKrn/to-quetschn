@@ -33,18 +33,17 @@ Read in this order before coding:
 Use project skills from `.claude/skills/*` when task trigger matches skill description.
 
 ## Current Phase
-- Sprint 1 runtime slice is completed as of 2026-02-11 (auth + Convex + queue + OMR + mapping + renderer + runtime API handlers).
-- Sprint 2 export micro-sprint is completed as of 2026-02-11 (queued PDF renderer + worker export pipeline + export status API + artifact storage).
-- Sprint 2 hardening + practice runtime MVP are completed as of 2026-02-12:
-  - Convex/Auth hardening with owner-scoped data access
-  - OMR normalization expansion (JSON + delimited + MusicXML paths)
-  - benchmark harness with advisory CI integration
-  - practice-mode runtime MVP route/UI
+- Sprint 1-4 slices are completed (runtime foundation, export history, benchmark expansion to 8 fixtures, practice v2 loop/shortcuts).
+- Sprint 5 implemented so far as of 2026-02-18:
+  - single-session workflow cleanup (parallel worktree protocol retired)
+  - hybrid OMR mode (`OMR_MODE=replay|audiveris`) with replay provider + manifest
+  - German-first MVP dashboard flow (upload, conversion polling, transpose confirm, practice, export polling)
+  - owner-scoped token correction flow (`PATCH /api/arrangements/:id`) with practice editor controls
 - Prioritize next:
-  - benchmark dataset expansion and threshold tuning
-  - export history model decision (latest-only vs historical retention)
-  - Docker-enabled compose/deployment smoke validation
-  - practice-mode v2 scoping (looping/shortcuts/MIDI-audio follow-up)
+  - local realistic scenario automation (`mvp:*` scripts + Playwright smoke artifact)
+  - benchmark hardening to 12 licensed fixtures + strict CI blocking gate
+  - Docker-enabled compose/deployment smoke validation evidence capture
+  - practice-mode MIDI/audio follow-up after MVP local GA bar
 
 ## Single-Session Branch Protocol
 - Use one Claude Code session in one workspace only (`/Users/skern/Work/projects-01/to-quetschn`).

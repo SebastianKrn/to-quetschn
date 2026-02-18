@@ -11,6 +11,9 @@ Last updated: 2026-02-18
 - Sprint 3 export history retention is implemented with latest-projection + append-only history model.
 - Practice-mode v2 is implemented with loop controls, deterministic loop playback, and keyboard shortcuts.
 - Benchmark harness dataset is expanded to 8 executable licensed fixtures across JSON, MusicXML, and delimited parser paths.
+- Sprint 5 hybrid OMR mode is implemented (`OMR_MODE=replay|audiveris`) with replay manifest support.
+- Sprint 5 MVP dashboard flow is implemented (upload -> conversion polling -> transpose confirmation -> practice -> export polling).
+- Sprint 5 token correction flow is implemented with owner-scoped `PATCH /api/arrangements/:id` and practice UI editor controls.
 - Single-session sequential branch workflow is the active protocol (parallel worktree flow retired).
 - Public sharing remains blocked by default pending legal completion.
 
@@ -35,6 +38,12 @@ Last updated: 2026-02-18
 - OMR service returns typed failure codes and normalized score payloads.
 - OMR parser pipeline now supports JSON, delimited fallback, and MusicXML normalization inputs.
 - Mapping/renderer packages now provide deterministic v1 implementations with tests.
+- Renderer SVG now emits token metadata for editor targeting (`data-token-id`).
+- Arrangement API now supports owner-scoped token correction with request validation:
+  - `PATCH /api/arrangements/:id`
+  - `UpdateArrangementTokenRequestSchema`
+  - `ApiContracts.updateArrangement`
+- Practice page now includes token selection/edit/save controls (row, button, direction) and updates arrangement state after save.
 - Convex/auth hardening now enforces secure deployment behavior:
   - stronger secret/config expectations in secure deployments
   - deployment-aware fail-closed Convex auth requirements
@@ -42,21 +51,25 @@ Last updated: 2026-02-18
 - Benchmark harness package and CI advisory integration are in place with expanded licensed fixtures and strict threshold defaults.
 - Root benchmark CLI handling now supports both `pnpm benchmark --strict` and forwarded forms like `pnpm benchmark -- --strict`.
 - Practice route `/practice/[arrangementId]` is implemented with tempo slider, play/pause auto-scroll, loop range controls, and keyboard shortcuts.
+- Home route now serves a German-first MVP dashboard instead of scaffold placeholder.
+- OMR runtime now supports deterministic local replay mode while keeping Audiveris parity mode available.
 - Project context docs are synchronized to include hardening + practice completion (`PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `memory.md`).
 
 ## Open Risks
 - Docker CLI unavailable in this execution environment, so compose config validation could not run here.
-- Benchmark dataset remains synthetic-heavy; thresholds still need calibration against broader licensed repertoire.
+- Benchmark dataset remains below Sprint 5 target (8 fixtures current vs 12 planned); strict CI gate is not yet blocking.
+- Local realistic scenario automation (`mvp:*` scripts + Playwright artifact run) is not yet implemented.
 - Practice runtime still lacks MIDI/audio integration follow-up beyond v2 loop+shortcut scope.
 
 ## Next Actions
-1. Run Docker compose smoke validation successfully in a Docker-enabled environment and archive passing evidence.
-2. Calibrate benchmark thresholds using broader real licensed fixtures beyond the current synthetic-heavy set.
-3. Scope next practice increment for MIDI/audio follow-up.
-4. Continue legal/licensing workflow and reviewer assignment.
+1. Implement local realistic scenario orchestration (`mvp:infra:up`, `mvp:apps:up`, `mvp:scenario`, `mvp:down`) and Playwright smoke artifact output.
+2. Expand benchmark manifest to 12 licensed fixtures and enforce strict CI blocking benchmark gate.
+3. Run Docker compose smoke validation successfully in a Docker-enabled environment and archive passing evidence.
+4. Scope next practice increment for MIDI/audio follow-up.
+5. Continue legal/licensing workflow and reviewer assignment.
 
 ## Next Session Bootstrap
-1. Start from updated `main` after Sprint 4 merges and verify clean state:
+1. Start from updated `main` after Sprint 5 token-correction + context-sync merges and verify clean state:
 - `git status -sb`
 - `git log --oneline -n 3`
 2. Run baseline checks:
@@ -66,7 +79,10 @@ Last updated: 2026-02-18
 - `pnpm verify`
 3. Run Docker smoke in Docker-enabled host and append results to:
 - `docs/qa/docker-smoke-sprint3.md`
-4. Before merge, keep final context sync in one commit touching:
+4. Resume Sprint 5 remaining slices:
+- local realistic scenario automation (`mvp:*` + Playwright smoke)
+- benchmark hardening (12 fixtures + strict CI blocking)
+5. Before merge, keep final context sync in one commit touching:
 - `PROJECT_SPEC.md`
 - `PROJECT_PLAN.md`
 - `memory.md`
@@ -77,6 +93,37 @@ Last updated: 2026-02-18
 - Decisions made:
 - Blockers:
 - Next:
+
+### 2026-02-18
+- Completed:
+- Merged Sprint 5 feature branches to `main` in sequence:
+  - `codex/feat/sprint5-workflow-cleanup`
+  - `codex/feat/sprint5-omr-hybrid-local-runtime`
+  - `codex/feat/sprint5-mvp-core-flow-ui`
+  - `codex/feat/sprint5-editor-token-correction`
+- Added arrangement token correction end-to-end slice:
+  - contract/type updates in `@grifftab/domain-types`
+  - owner-scoped API route `PATCH /api/arrangements/:id`
+  - Convex mutation + domain-store wiring
+  - practice editor UI and SVG token targeting support
+  - route test coverage for arrangement patch behavior
+- Removed linked benchmark worktree (`git worktree remove /Users/skern/Work/projects-01/to-quetschn-bench`).
+- Re-ran required quality gates successfully:
+  - `pnpm test`
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm build`
+  - `pnpm validate:skills`
+  - `pnpm validate:memory`
+- Decisions made:
+- Keep local auth path deterministic for realistic local runs via dev header flow (development/test only).
+- Keep hybrid OMR approach locked: replay mode for deterministic local testing, Audiveris mode for parity validation.
+- Blockers:
+- Docker unavailable in this host (`docker: command not found`), so compose/smoke success evidence still requires external Docker-enabled execution.
+- Sprint 5 scenario automation and strict CI benchmark hardening are still open.
+- Next:
+- Implement `mvp:*` scenario automation and Playwright smoke artifact generation.
+- Expand benchmark manifest to 12 licensed fixtures and switch CI benchmark to strict blocking.
 
 ### 2026-02-11
 - Completed:
