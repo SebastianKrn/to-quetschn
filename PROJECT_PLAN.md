@@ -90,6 +90,7 @@ Status: Completed (unchanged in Sprint 1)
 - added dual-session worktree playbook
 - aligned verify script ordering with declared sprint gate order
 - updated agent workflow docs with ownership and merge protocol
+- retired dual-session worktree protocol in Sprint 5; single-session sequential branching is now the active workflow
 5. Docker smoke runbook delivered for Docker-enabled execution:
 - added executable `scripts/docker-smoke.sh`
 - captured blocked evidence in this environment (`docker: command not found`)

@@ -1,6 +1,6 @@
 # GriffTab Memory
 
-Last updated: 2026-02-17
+Last updated: 2026-02-18
 
 ## Snapshot
 - Foundation scaffold has been advanced to Sprint 1 runtime wiring.
@@ -11,7 +11,7 @@ Last updated: 2026-02-17
 - Sprint 3 export history retention is implemented with latest-projection + append-only history model.
 - Practice-mode v2 is implemented with loop controls, deterministic loop playback, and keyboard shortcuts.
 - Benchmark harness dataset is expanded to 8 executable licensed fixtures across JSON, MusicXML, and delimited parser paths.
-- Parallel worktree orchestration workflow is documented for two-session Codex execution.
+- Single-session sequential branch workflow is the active protocol (parallel worktree flow retired).
 - Public sharing remains blocked by default pending legal completion.
 
 ## Decisions (Locked)
@@ -66,9 +66,7 @@ Last updated: 2026-02-17
 - `pnpm verify`
 3. Run Docker smoke in Docker-enabled host and append results to:
 - `docs/qa/docker-smoke-sprint3.md`
-4. If starting a second parallel session later, use:
-- `docs/qa/parallel-worktree-playbook.md`
-5. Before merge, keep final context sync in one commit touching:
+4. Before merge, keep final context sync in one commit touching:
 - `PROJECT_SPEC.md`
 - `PROJECT_PLAN.md`
 - `memory.md`

@@ -46,20 +46,20 @@ Use project skills from `.claude/skills/*` when task trigger matches skill descr
   - Docker-enabled compose/deployment smoke validation
   - practice-mode v2 scoping (looping/shortcuts/MIDI-audio follow-up)
 
-## Parallel Worktree Protocol (Sprint 3)
-- Session A (main/orchestrator cwd): `/Users/skern/Work/projects-01/to-quetschn`
-- Session B (benchmark/docker cwd): `/Users/skern/Work/projects-01/to-quetschn-bench`
-- Setup commands:
+## Single-Session Branch Protocol
+- Use one Claude Code session in one workspace only (`/Users/skern/Work/projects-01/to-quetschn`).
+- For multi-part work, use sequential feature branches and merge in order:
   - `git fetch origin`
   - `git switch main`
   - `git pull --ff-only`
-  - `git switch -c claude/feat/sprint3-export-history`
-  - `git worktree add /Users/skern/Work/projects-01/to-quetschn-bench -b claude/feat/sprint3-benchmark-docker origin/main`
-- Ownership:
-  - Session A owns export model/API, ADR updates, and final updates to `memory.md`, `PROJECT_SPEC.md`, `PROJECT_PLAN.md`.
-  - Session B owns benchmark fixtures/thresholds, benchmark command fixes, and Docker smoke docs/artifacts.
-  - Session B must not edit `memory.md`, `PROJECT_SPEC.md`, `PROJECT_PLAN.md`.
-- Merge flow:
-  - Merge Session B branch first.
-  - Rebase Session A branch onto updated `main`.
-  - Merge Session A branch.
+  - `git switch -c claude/feat/<slice>`
+- Keep context/docs ownership in the final branch of the sprint:
+  - `memory.md`
+  - `PROJECT_SPEC.md`
+  - `PROJECT_PLAN.md`
+
+## Branch Hygiene
+- After a feature branch is merged into `main`, delete it locally:
+  - `git branch -d claude/feat/<slice>`
+- Prune stale remotes during sprint close:
+  - `git fetch --prune`

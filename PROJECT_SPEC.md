@@ -23,7 +23,7 @@ Status: Sprint 4 practice v2 + benchmark expansion completed (Docker-enabled smo
 - Benchmark regression harness is implemented with licensed-manifest filtering and advisory CI execution.
 - Benchmark dataset now includes 8 executable licensed fixtures across JSON, MusicXML, and delimited parser paths with strict thresholds.
 - Practice mode v2 is implemented at `/practice/[arrangementId]` with authenticated load, SVG rendering, tempo control, loop range controls, deterministic loop playback, and keyboard shortcuts.
-- Parallel orchestration workflow is documented for dual-session worktree execution.
+- Single-session branch workflow is now the active protocol (dual-session worktree playbook retired).
 - Docker smoke runbook evidence is documented for blocked hosts and requires successful execution in a Docker-enabled environment for release proof.
 - OMR errors are typed and normalized using taxonomy:
   - `OMR_TIMEOUT`

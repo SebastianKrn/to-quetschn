@@ -46,5 +46,5 @@ pnpm verify
 ## Notes
 - Public sharing of arrangements is feature-flagged off by default until legal track is complete.
 - Sprint 3 priorities: export history retention, benchmark dataset expansion/threshold tuning, Docker smoke validation, and practice v2 scoping.
-- Parallel worktree orchestration runbook: `docs/qa/parallel-worktree-playbook.md`.
+- Single-session branch workflow is defined in `AGENTS.md` and `CLAUDE.md`.
 - Docker smoke runbook: `docs/qa/docker-smoke-sprint3.md`.

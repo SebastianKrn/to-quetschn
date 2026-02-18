@@ -17,3 +17,4 @@ apps/worker/dist/
 minio-data/
 postgres-data/
 redis-data/
+.artifacts/
