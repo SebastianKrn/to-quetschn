@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Arrangement } from "@grifftab/domain-types";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import type { Arrangement, GriffDirection, GriffToken } from "@grifftab/domain-types";
 import { GriffschriftSvgRenderer } from "@grifftab/renderer-svg";
 import {
   clampTempoBpm,
@@ -12,12 +12,20 @@ import {
   MAX_PRACTICE_TEMPO_BPM,
   MIN_PRACTICE_TEMPO_BPM,
   normalizeLoopRange,
-  type PracticeLoopRange,
-  stepTempoByShortcut
+  stepTempoByShortcut,
+  type PracticeLoopRange
 } from "@/lib/practice";
 
 export interface PracticePlayerProps {
   arrangement: Arrangement;
+  devUserId?: string;
+}
+
+interface TokenPatchDraft {
+  tokenId: string;
+  row: number;
+  button: number;
+  direction: GriffDirection;
 }
 
 function shouldIgnoreKeyboardShortcut(target: EventTarget | null): boolean {
@@ -37,16 +45,64 @@ function shouldIgnoreKeyboardShortcut(target: EventTarget | null): boolean {
   return target.closest("[contenteditable='true']") !== null;
 }
 
-export function PracticePlayer({ arrangement }: PracticePlayerProps) {
+function findToken(arrangement: Arrangement, tokenId: string): GriffToken | null {
+  for (const measure of arrangement.measures) {
+    for (const token of measure.tokens) {
+      if (token.id === tokenId) {
+        return token;
+      }
+    }
+  }
+
+  return null;
+}
+
+export function PracticePlayer({ arrangement, devUserId }: PracticePlayerProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const measureCount = Math.max(1, arrangement.measures.length);
+  const [currentArrangement, setCurrentArrangement] = useState(arrangement);
+  const measureCount = Math.max(1, currentArrangement.measures.length);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [tempoBpm, setTempoBpm] = useState(clampTempoBpm(arrangement.tempoBpm));
+  const [tempoBpm, setTempoBpm] = useState(clampTempoBpm(currentArrangement.tempoBpm));
   const [loopEnabled, setLoopEnabled] = useState(false);
   const [loopRange, setLoopRange] = useState<PracticeLoopRange>({
     startMeasure: 1,
     endMeasure: measureCount
   });
+  const [selectedTokenId, setSelectedTokenId] = useState<string | null>(null);
+  const [tokenPatchDraft, setTokenPatchDraft] = useState<TokenPatchDraft | null>(null);
+  const [patchState, setPatchState] = useState<{
+    isSaving: boolean;
+    message: string | null;
+  }>({
+    isSaving: false,
+    message: null
+  });
+
+  const selectedToken = useMemo(() => {
+    if (!selectedTokenId) {
+      return null;
+    }
+
+    return findToken(currentArrangement, selectedTokenId);
+  }, [currentArrangement, selectedTokenId]);
+
+  useEffect(() => {
+    setCurrentArrangement(arrangement);
+  }, [arrangement]);
+
+  useEffect(() => {
+    if (!selectedToken) {
+      setTokenPatchDraft(null);
+      return;
+    }
+
+    setTokenPatchDraft({
+      tokenId: selectedToken.id,
+      row: selectedToken.row,
+      button: selectedToken.button,
+      direction: selectedToken.direction
+    });
+  }, [selectedToken]);
 
   const measureOptions = useMemo(
     () => Array.from({ length: measureCount }, (_, index) => index + 1),
@@ -55,21 +111,21 @@ export function PracticePlayer({ arrangement }: PracticePlayerProps) {
 
   const svg = useMemo(() => {
     const renderer = new GriffschriftSvgRenderer();
-    const svgHeight = Math.max(560, arrangement.measures.length * 120 + 180);
-    return renderer.renderArrangement(arrangement, {
+    const svgHeight = Math.max(560, currentArrangement.measures.length * 120 + 180);
+    return renderer.renderArrangement(currentArrangement, {
       width: 1080,
       height: svgHeight,
       showMeasureNumbers: true
     });
-  }, [arrangement]);
+  }, [currentArrangement]);
 
   const scrollSpeed = useMemo(
     () =>
       getScrollSpeedPxPerSecond({
-        arrangementTempoBpm: arrangement.tempoBpm,
+        arrangementTempoBpm: currentArrangement.tempoBpm,
         selectedTempoBpm: tempoBpm
       }),
-    [arrangement.tempoBpm, tempoBpm]
+    [currentArrangement.tempoBpm, tempoBpm]
   );
 
   useEffect(() => {
@@ -220,14 +276,83 @@ export function PracticePlayer({ arrangement }: PracticePlayerProps) {
     };
   }, [resetScroll]);
 
+  const onSvgClick = (event: MouseEvent<HTMLDivElement>) => {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    const tokenElement = target.closest("[data-token-id]");
+    const tokenId = tokenElement?.getAttribute("data-token-id");
+    if (!tokenId) {
+      return;
+    }
+
+    setSelectedTokenId(tokenId);
+    setPatchState({
+      isSaving: false,
+      message: `Griff ${tokenId} ausgewählt.`
+    });
+  };
+
+  const saveTokenPatch = async () => {
+    if (!tokenPatchDraft) {
+      return;
+    }
+
+    setPatchState({
+      isSaving: true,
+      message: null
+    });
+
+    try {
+      const headers: Record<string, string> = {
+        "content-type": "application/json"
+      };
+      if (devUserId?.trim()) {
+        headers["x-dev-user-id"] = devUserId.trim();
+      }
+
+      const response = await fetch(`/api/arrangements/${currentArrangement.id}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({
+          tokenId: tokenPatchDraft.tokenId,
+          row: Math.max(1, Math.round(tokenPatchDraft.row)),
+          button: Math.max(1, Math.round(tokenPatchDraft.button)),
+          direction: tokenPatchDraft.direction
+        })
+      });
+
+      const body = (await response.json()) as {
+        message?: string;
+        arrangement?: Arrangement;
+      };
+      if (!response.ok || !body.arrangement) {
+        throw new Error(body.message ?? "Token konnte nicht gespeichert werden.");
+      }
+
+      setCurrentArrangement(body.arrangement);
+      setPatchState({
+        isSaving: false,
+        message: "Token wurde gespeichert."
+      });
+    } catch (error) {
+      setPatchState({
+        isSaving: false,
+        message: error instanceof Error ? error.message : "Token konnte nicht gespeichert werden."
+      });
+    }
+  };
+
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-6">
       <header className="flex flex-col gap-2 border-b border-slate-200 pb-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">{arrangement.title}</h1>
-          <p className="text-sm text-slate-600">Stimmung: {arrangement.tuning}</p>
+          <h1 className="text-2xl font-bold text-slate-900">{currentArrangement.title}</h1>
+          <p className="text-sm text-slate-600">Stimmung: {currentArrangement.tuning}</p>
         </div>
-        <div className="text-sm text-slate-600">Standardtempo: {arrangement.tempoBpm} BPM</div>
+        <div className="text-sm text-slate-600">Standardtempo: {currentArrangement.tempoBpm} BPM</div>
       </header>
 
       <div className="grid gap-4 md:grid-cols-[1fr_auto_auto] md:items-end">
@@ -281,9 +406,7 @@ export function PracticePlayer({ arrangement }: PracticePlayerProps) {
               </select>
             </label>
           </div>
-          <div className="text-xs text-slate-500">
-            {loopEnabled ? "Loop aktiv" : "Loop aus"}
-          </div>
+          <div className="text-xs text-slate-500">{loopEnabled ? "Loop aktiv" : "Loop aus"}</div>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -319,12 +442,98 @@ export function PracticePlayer({ arrangement }: PracticePlayerProps) {
         Kurzbefehle: Leertaste (Start/Pause), L (Loop), R (Zurücksetzen), Pfeil hoch/runter (Tempo).
       </p>
 
+      <section className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <h2 className="text-sm font-semibold text-slate-900">Token-Korrektur</h2>
+        <p className="mt-1 text-xs text-slate-600">
+          Einen Griff direkt im SVG anklicken und anschließend Reihe, Knopf und Balgrichtung anpassen.
+        </p>
+
+        {selectedToken && tokenPatchDraft ? (
+          <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
+            <label className="flex flex-col gap-1 text-xs text-slate-700">
+              <span>Reihe</span>
+              <input
+                type="number"
+                min={1}
+                value={tokenPatchDraft.row}
+                onChange={(event) =>
+                  setTokenPatchDraft((current) =>
+                    current
+                      ? {
+                          ...current,
+                          row: Number(event.target.value)
+                        }
+                      : current
+                  )
+                }
+                className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1 text-xs text-slate-700">
+              <span>Knopf</span>
+              <input
+                type="number"
+                min={1}
+                value={tokenPatchDraft.button}
+                onChange={(event) =>
+                  setTokenPatchDraft((current) =>
+                    current
+                      ? {
+                          ...current,
+                          button: Number(event.target.value)
+                        }
+                      : current
+                  )
+                }
+                className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1 text-xs text-slate-700">
+              <span>Balgrichtung</span>
+              <select
+                value={tokenPatchDraft.direction}
+                onChange={(event) =>
+                  setTokenPatchDraft((current) =>
+                    current
+                      ? {
+                          ...current,
+                          direction: event.target.value as GriffDirection
+                        }
+                      : current
+                  )
+                }
+                className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+              >
+                <option value="push">Druck (push)</option>
+                <option value="pull">Zug (pull)</option>
+              </select>
+            </label>
+
+            <button
+              type="button"
+              onClick={saveTokenPatch}
+              disabled={patchState.isSaving}
+              className="rounded-md bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
+            >
+              {patchState.isSaving ? "Speichert..." : "Token speichern"}
+            </button>
+          </div>
+        ) : (
+          <p className="mt-2 text-xs text-slate-600">Noch kein Token ausgewählt.</p>
+        )}
+
+        {patchState.message ? <p className="mt-2 text-xs text-slate-600">{patchState.message}</p> : null}
+      </section>
+
       <div
         ref={scrollRef}
         className="max-h-[65vh] overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-2"
       >
         <div
-          className="mx-auto w-full max-w-[1080px]"
+          className="mx-auto w-full max-w-[1080px] cursor-pointer"
+          onClick={onSvgClick}
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       </div>

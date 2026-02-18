@@ -38,6 +38,9 @@ describe("/api/arrangements/:id/export", () => {
           metadata: {}
         };
       },
+      async updateArrangementToken() {
+        return null;
+      },
       async requestLatestExport(input) {
         requestLatestExportCalls.push({ force: input.force });
         return {
@@ -230,6 +233,9 @@ describe("/api/arrangements/:id/export", () => {
         return arrangement;
       },
       async getArrangement() {
+        return null;
+      },
+      async updateArrangementToken() {
         return null;
       },
       async requestLatestExport() {

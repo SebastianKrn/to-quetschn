@@ -99,6 +99,14 @@ export const ArrangementSchema = z.object({
 });
 export type Arrangement = z.infer<typeof ArrangementSchema>;
 
+export const UpdateArrangementTokenRequestSchema = z.object({
+  tokenId: z.string().min(1),
+  row: z.number().int().min(1),
+  button: z.number().int().min(1),
+  direction: GriffDirectionSchema
+});
+export type UpdateArrangementTokenRequest = z.infer<typeof UpdateArrangementTokenRequestSchema>;
+
 export const TransposeSuggestionSchema = z.object({
   semitones: z.number().int(),
   targetKey: z.string().min(1),
@@ -227,6 +235,7 @@ export const ApiContracts = {
     path: "/api/conversions/:id/confirm-transpose"
   },
   getArrangement: { method: "GET", path: "/api/arrangements/:id" },
+  updateArrangement: { method: "PATCH", path: "/api/arrangements/:id" },
   exportArrangement: { method: "POST", path: "/api/arrangements/:id/export" },
   getArrangementExport: { method: "GET", path: "/api/arrangements/:id/export" },
   listArrangementExports: { method: "GET", path: "/api/arrangements/:id/exports" }

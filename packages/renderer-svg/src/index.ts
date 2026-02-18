@@ -47,7 +47,7 @@ export class GriffschriftSvgRenderer implements SvgRenderer {
             const tokenY = y + 36 + tokenIndex * 13;
             const directionSymbol = token.direction === "push" ? "○" : "●";
             const text = `${directionSymbol} R${token.row} K${token.button} (${token.pitch})`;
-            return `<text x="${x + 10}" y="${tokenY}" font-family="Verdana" font-size="11" fill="#0f172a">${escapeXml(text)}</text>`;
+            return `<text data-token-id="${escapeXml(token.id)}" x="${x + 10}" y="${tokenY}" font-family="Verdana" font-size="11" fill="#0f172a">${escapeXml(text)}</text>`;
           })
           .join("\n");
 

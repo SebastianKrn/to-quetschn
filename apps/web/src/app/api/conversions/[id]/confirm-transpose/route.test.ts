@@ -24,6 +24,9 @@ describe("POST /api/conversions/:id/confirm-transpose", () => {
       async getArrangement() {
         return null;
       },
+      async updateArrangementToken() {
+        return null;
+      },
       async requestLatestExport() {
         throw new Error("not used");
       },

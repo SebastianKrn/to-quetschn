@@ -46,6 +46,14 @@ export interface DomainStore {
   getConversionSource(id: string, ownerUserId?: string): Promise<{ inputFileId: string; tuning: Tuning } | null>;
   upsertArrangement(arrangement: Arrangement, ownerUserId: string): Promise<Arrangement>;
   getArrangement(id: string, ownerUserId: string): Promise<Arrangement | null>;
+  updateArrangementToken(input: {
+    arrangementId: string;
+    ownerUserId: string;
+    tokenId: string;
+    row: number;
+    button: number;
+    direction: "push" | "pull";
+  }): Promise<Arrangement | null>;
   requestLatestExport(input: {
     arrangementId: string;
     correlationId: string;
@@ -352,6 +360,55 @@ class MemoryDomainStore implements DomainStore {
     return claimed?.arrangement ?? null;
   }
 
+  async updateArrangementToken(input: {
+    arrangementId: string;
+    ownerUserId: string;
+    tokenId: string;
+    row: number;
+    button: number;
+    direction: "push" | "pull";
+  }): Promise<Arrangement | null> {
+    const claimed = this.claimArrangementOwner({
+      id: input.arrangementId,
+      ownerUserId: input.ownerUserId
+    });
+    if (!claimed) {
+      return null;
+    }
+
+    let tokenFound = false;
+    const updated: Arrangement = ArrangementSchema.parse({
+      ...claimed.arrangement,
+      measures: claimed.arrangement.measures.map((measure) => ({
+        ...measure,
+        tokens: measure.tokens.map((token) => {
+          if (token.id !== input.tokenId) {
+            return token;
+          }
+
+          tokenFound = true;
+          return {
+            ...token,
+            row: input.row,
+            button: input.button,
+            direction: input.direction
+          };
+        })
+      }))
+    });
+
+    if (!tokenFound) {
+      return null;
+    }
+
+    memory.arrangements.set(input.arrangementId, {
+      ownerUserId: claimed.ownerUserId ?? input.ownerUserId,
+      arrangement: updated
+    });
+
+    return updated;
+  }
+
   async requestLatestExport(input: {
     arrangementId: string;
     correlationId: string;
@@ -593,6 +650,24 @@ class ConvexDomainStore extends MemoryDomainStore {
         return remote ? ArrangementSchema.parse(remote) : null;
       },
       fallback: () => super.getArrangement(id, ownerUserId)
+    });
+  }
+
+  override async updateArrangementToken(input: {
+    arrangementId: string;
+    ownerUserId: string;
+    tokenId: string;
+    row: number;
+    button: number;
+    direction: "push" | "pull";
+  }): Promise<Arrangement | null> {
+    return this.withFallback({
+      operationName: "updateArrangementToken",
+      operation: async () => {
+        const remote = await this.callMutation<Arrangement | null>("arrangements:updateArrangementToken", input);
+        return remote ? ArrangementSchema.parse(remote) : null;
+      },
+      fallback: () => super.updateArrangementToken(input)
     });
   }
 

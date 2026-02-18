@@ -87,3 +87,73 @@ export const getArrangement = query({
     return existing?.payload ?? null;
   }
 });
+
+export const updateArrangementToken = mutation({
+  args: {
+    arrangementId: v.string(),
+    ownerUserId: v.string(),
+    tokenId: v.string(),
+    row: v.number(),
+    button: v.number(),
+    direction: v.union(v.literal("push"), v.literal("pull"))
+  },
+  handler: async (ctx, args) => {
+    const existing = await getAuthorizedArrangement(ctx, {
+      id: args.arrangementId,
+      ownerUserId: args.ownerUserId
+    });
+
+    if (!existing) {
+      return null;
+    }
+
+    const payload = existing.payload as {
+      measures?: Array<{
+        tokens?: Array<{
+          id?: string;
+          row?: number;
+          button?: number;
+          direction?: "push" | "pull";
+        }>;
+      }>;
+    };
+    const measures = Array.isArray(payload.measures) ? payload.measures : [];
+    let tokenFound = false;
+
+    const updatedPayload = {
+      ...payload,
+      measures: measures.map((measure) => {
+        const tokens = Array.isArray(measure.tokens) ? measure.tokens : [];
+        return {
+          ...measure,
+          tokens: tokens.map((token) => {
+            if (token.id !== args.tokenId) {
+              return token;
+            }
+
+            tokenFound = true;
+            return {
+              ...token,
+              row: args.row,
+              button: args.button,
+              direction: args.direction
+            };
+          })
+        };
+      })
+    };
+
+    if (!tokenFound) {
+      return null;
+    }
+
+    await ctx.db.patch(existing._id, {
+      ownerUserId: existing.ownerUserId ?? args.ownerUserId,
+      payload: updatedPayload,
+      updatedAt: new Date().toISOString()
+    });
+
+    const updated = await ctx.db.get(existing._id);
+    return updated?.payload ?? null;
+  }
+});
