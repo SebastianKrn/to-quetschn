@@ -74,10 +74,11 @@ Last updated: 2026-02-26
 - Practice runtime still lacks MIDI/audio integration follow-up beyond v2 loop+shortcut scope.
 
 ## Next Actions
-1. Run Docker compose smoke validation successfully in a Docker-enabled environment and archive passing evidence.
-2. Expand replay manifest coverage for additional deterministic local fixture runs.
-3. Scope next practice increment for MIDI/audio follow-up.
-4. Continue legal/licensing workflow and reviewer assignment.
+1. Run local MVP manual verification tomorrow using `docs/qa/mvp-local-test-tomorrow.md`.
+2. Run Docker compose smoke validation successfully in a Docker-enabled environment and archive passing evidence.
+3. Expand replay manifest coverage for additional deterministic local fixture runs.
+4. Scope next practice increment for MIDI/audio follow-up.
+5. Continue legal/licensing workflow and reviewer assignment.
 
 ## Next Session Bootstrap
 1. Start from updated `main` after Sprint 6 merges and verify clean state:
@@ -125,6 +126,7 @@ Last updated: 2026-02-26
 - Expanded benchmark dataset to 12 licensed fixtures (`sample-licensed-009..012`) and updated manifest.
 - Switched CI benchmark step to strict blocking and added advisory MVP scenario + artifact upload.
 - Updated QA and context docs (`README.md`, `docs/qa/*`, `PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `memory.md`).
+- Added explicit tomorrow test handoff guide: `docs/qa/mvp-local-test-tomorrow.md`.
 - Decisions made:
 - Keep host-app + Docker-infra as default local MVP run model.
 - Keep replay mode forced in MVP scripts for deterministic local smoke.
@@ -132,6 +134,7 @@ Last updated: 2026-02-26
 - Blockers:
 - Docker unavailable in this Codex host (`docker: command not found`), so positive runtime execution of `mvp:*` and Docker smoke success evidence must be run on a Docker-enabled machine.
 - Next:
+- Run tomorrow's local manual checklist from `docs/qa/mvp-local-test-tomorrow.md`.
 - Run `pnpm mvp:scenario` and `./scripts/docker-smoke.sh` in Docker-enabled host and append evidence.
 - Continue replay-manifest breadth expansion and MIDI/audio follow-up planning.
 
