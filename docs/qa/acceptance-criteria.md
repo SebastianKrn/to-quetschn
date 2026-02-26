@@ -72,3 +72,27 @@
 - Benchmark manifest executes at least eight licensed entries with explicit skip reasons for non-licensed entries.
 - Strict benchmark run succeeds with `failed=0` and writes `.artifacts/benchmark-summary-sprint4.json`.
 - Docker smoke output evidence is appended to `docs/qa/docker-smoke-sprint3.md` for each dated execution attempt.
+
+## Sprint 6 MVP Local Scenario + Strict Benchmark Addendum
+
+### Local MVP Orchestration Coverage
+- Root scripts exist for local MVP orchestration:
+  - `pnpm mvp:infra:up`
+  - `pnpm mvp:apps:up`
+  - `pnpm mvp:scenario`
+  - `pnpm mvp:down`
+- `mvp:infra:up` fails fast with clear message when Docker is unavailable.
+- `mvp:infra:up` starts `postgres`, `redis`, `minio` and ensures configured MinIO bucket exists.
+- `mvp:apps:up` starts `web`, `omr-service`, `worker` with replay mode enabled.
+- `mvp:scenario` produces `.artifacts/mvp-scenario-summary.json` with step-level pass/fail and IDs.
+
+### MVP Smoke Test Coverage
+- Playwright smoke exists for convert -> practice token edit -> export flow.
+- MVP dashboard/practice controls expose stable `data-testid` selectors for e2e automation.
+- Smoke validates conversion completion, token save feedback, export completion, and download URL presence.
+
+### Benchmark and CI Coverage
+- Benchmark manifest executes at least twelve `licenseStatus=licensed` entries.
+- CI benchmark step runs strict blocking mode:
+  - `pnpm benchmark --strict --json .artifacts/benchmark-summary.json`
+- CI includes advisory MVP smoke execution and uploads scenario artifacts.

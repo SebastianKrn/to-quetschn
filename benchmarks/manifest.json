@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "GriffTab benchmark manifest for OMR normalization and mapping regression",
   "entries": [
     {
@@ -116,6 +116,66 @@
       "tuning": "BEADG",
       "licenseStatus": "licensed",
       "notes": "Sprint 4 threshold tuning pass: strict defaults retained while validating transpose-suggestion checks",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-009",
+      "title": "Licensed synthetic benchmark (JSON, ADGC)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-009.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-009.json",
+      "expectedJson": "benchmarks/expected/sample-licensed-009.json",
+      "tuning": "ADGC",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 6 fixture expansion: strict defaults retained for JSON parser ADGC coverage",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-010",
+      "title": "Licensed synthetic benchmark (MusicXML, CFBB)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-010.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-010.musicxml",
+      "expectedJson": "benchmarks/expected/sample-licensed-010.json",
+      "tuning": "CFBB",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 6 fixture expansion: strict defaults retained for MusicXML parser CFBB coverage",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-011",
+      "title": "Licensed synthetic benchmark (Delimited, BEADG)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-011.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-011.txt",
+      "expectedJson": "benchmarks/expected/sample-licensed-011.json",
+      "tuning": "BEADG",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 6 fixture expansion: strict defaults retained for delimited parser BEADG coverage",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-012",
+      "title": "Licensed synthetic benchmark (JSON, GCFB)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-012.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-012.json",
+      "expectedJson": "benchmarks/expected/sample-licensed-012.json",
+      "tuning": "GCFB",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 6 fixture expansion: strict defaults retained for JSON parser GCFB coverage",
       "thresholds": {
         "tokenMatchRatioMin": 1,
         "requireMeasureCount": true,

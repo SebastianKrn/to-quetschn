@@ -6,6 +6,10 @@ Run deterministic OMR normalization + mapping regressions from a manifest while 
 ## Manifest
 Use `benchmarks/manifest.json` (template: `docs/qa/benchmark-manifest.template.json`).
 
+Sprint 6 baseline:
+- 12 executable `licenseStatus=licensed` entries
+- strict thresholds retained for all licensed fixtures unless explicitly documented per-entry
+
 Entry fields:
 - `id`, `title`
 - `sourcePdf` (reference source path)
@@ -48,5 +52,7 @@ pnpm benchmark --strict --json .artifacts/benchmark-summary-sprint4.json
 - Do not commit copyrighted source files without explicit license approval.
 
 ## CI Behavior
-CI runs benchmark in advisory mode (non-blocking) and uploads the summary artifact.
-Strict mode can be enabled later once the licensed dataset and thresholds are finalized.
+CI runs benchmark in strict blocking mode and uploads the summary artifact:
+```bash
+pnpm benchmark --strict --json .artifacts/benchmark-summary.json
+```

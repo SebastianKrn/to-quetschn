@@ -1,6 +1,6 @@
 # GriffTab Memory
 
-Last updated: 2026-02-18
+Last updated: 2026-02-26
 
 ## Snapshot
 - Foundation scaffold has been advanced to Sprint 1 runtime wiring.
@@ -14,6 +14,8 @@ Last updated: 2026-02-18
 - Sprint 5 hybrid OMR mode is implemented (`OMR_MODE=replay|audiveris`) with replay manifest support.
 - Sprint 5 MVP dashboard flow is implemented (upload -> conversion polling -> transpose confirmation -> practice -> export polling).
 - Sprint 5 token correction flow is implemented with owner-scoped `PATCH /api/arrangements/:id` and practice UI editor controls.
+- Sprint 6 local MVP automation is implemented with `mvp:*` commands and Playwright smoke summary output.
+- Sprint 6 benchmark gate hardening is implemented (12 licensed fixtures + strict CI benchmark blocking).
 - Single-session sequential branch workflow is the active protocol (parallel worktree flow retired).
 - Public sharing remains blocked by default pending legal completion.
 
@@ -50,26 +52,35 @@ Last updated: 2026-02-18
   - owner-scoped reads/writes with lazy owner backfill for legacy records
 - Benchmark harness package and CI advisory integration are in place with expanded licensed fixtures and strict threshold defaults.
 - Root benchmark CLI handling now supports both `pnpm benchmark --strict` and forwarded forms like `pnpm benchmark -- --strict`.
+- Root MVP command surface is implemented:
+  - `pnpm mvp:infra:up`
+  - `pnpm mvp:apps:up`
+  - `pnpm mvp:scenario`
+  - `pnpm mvp:down`
+- MVP local scenario Playwright smoke is implemented at `apps/web/e2e/mvp-smoke.pw.ts`.
+- MVP smoke writes deterministic artifact summary to `.artifacts/mvp-scenario-summary.json`.
+- Benchmark manifest now includes 12 licensed executable fixtures (`sample-licensed-001..012`).
+- CI benchmark step is now strict and blocking.
+- CI includes advisory MVP scenario smoke plus artifact upload.
 - Practice route `/practice/[arrangementId]` is implemented with tempo slider, play/pause auto-scroll, loop range controls, and keyboard shortcuts.
 - Home route now serves a German-first MVP dashboard instead of scaffold placeholder.
 - OMR runtime now supports deterministic local replay mode while keeping Audiveris parity mode available.
-- Project context docs are synchronized to include hardening + practice completion (`PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `memory.md`).
+- Project context docs are synchronized for Sprint 6 local-MVP + strict-benchmark state.
 
 ## Open Risks
 - Docker CLI unavailable in this execution environment, so compose config validation could not run here.
-- Benchmark dataset remains below Sprint 5 target (8 fixtures current vs 12 planned); strict CI gate is not yet blocking.
-- Local realistic scenario automation (`mvp:*` scripts + Playwright artifact run) is not yet implemented.
+- Docker smoke success evidence is still not captured in a Docker-enabled host/session.
+- Replay manifest coverage remains narrower than benchmark fixture coverage.
 - Practice runtime still lacks MIDI/audio integration follow-up beyond v2 loop+shortcut scope.
 
 ## Next Actions
-1. Implement local realistic scenario orchestration (`mvp:infra:up`, `mvp:apps:up`, `mvp:scenario`, `mvp:down`) and Playwright smoke artifact output.
-2. Expand benchmark manifest to 12 licensed fixtures and enforce strict CI blocking benchmark gate.
-3. Run Docker compose smoke validation successfully in a Docker-enabled environment and archive passing evidence.
-4. Scope next practice increment for MIDI/audio follow-up.
-5. Continue legal/licensing workflow and reviewer assignment.
+1. Run Docker compose smoke validation successfully in a Docker-enabled environment and archive passing evidence.
+2. Expand replay manifest coverage for additional deterministic local fixture runs.
+3. Scope next practice increment for MIDI/audio follow-up.
+4. Continue legal/licensing workflow and reviewer assignment.
 
 ## Next Session Bootstrap
-1. Start from updated `main` after Sprint 5 token-correction + context-sync merges and verify clean state:
+1. Start from updated `main` after Sprint 6 merges and verify clean state:
 - `git status -sb`
 - `git log --oneline -n 3`
 2. Run baseline checks:
@@ -79,9 +90,9 @@ Last updated: 2026-02-18
 - `pnpm verify`
 3. Run Docker smoke in Docker-enabled host and append results to:
 - `docs/qa/docker-smoke-sprint3.md`
-4. Resume Sprint 5 remaining slices:
-- local realistic scenario automation (`mvp:*` + Playwright smoke)
-- benchmark hardening (12 fixtures + strict CI blocking)
+4. Resume next open slices:
+- Docker smoke success evidence capture on Docker-enabled host
+- replay-manifest breadth expansion for additional local deterministic flows
 5. Before merge, keep final context sync in one commit touching:
 - `PROJECT_SPEC.md`
 - `PROJECT_PLAN.md`
@@ -93,6 +104,36 @@ Last updated: 2026-02-18
 - Decisions made:
 - Blockers:
 - Next:
+
+### 2026-02-26
+- Completed:
+- Implemented Sprint 6 local MVP command surface:
+  - `pnpm mvp:infra:up`
+  - `pnpm mvp:apps:up`
+  - `pnpm mvp:scenario`
+  - `pnpm mvp:down`
+- Added MVP orchestration scripts under `scripts/mvp/*` with:
+  - Docker fail-fast checks
+  - host-app startup for web/omr-service/worker
+  - MinIO bucket bootstrap
+  - deterministic `.artifacts/mvp` log output
+- Added Playwright MVP smoke coverage:
+  - `apps/web/e2e/playwright.config.ts`
+  - `apps/web/e2e/mvp-smoke.pw.ts`
+  - scenario artifact output `.artifacts/mvp-scenario-summary.json`
+- Added stable UI selectors (`data-testid`) in dashboard/practice components for e2e automation.
+- Expanded benchmark dataset to 12 licensed fixtures (`sample-licensed-009..012`) and updated manifest.
+- Switched CI benchmark step to strict blocking and added advisory MVP scenario + artifact upload.
+- Updated QA and context docs (`README.md`, `docs/qa/*`, `PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `memory.md`).
+- Decisions made:
+- Keep host-app + Docker-infra as default local MVP run model.
+- Keep replay mode forced in MVP scripts for deterministic local smoke.
+- Keep Playwright scenario CI step advisory for this sprint.
+- Blockers:
+- Docker unavailable in this Codex host (`docker: command not found`), so positive runtime execution of `mvp:*` and Docker smoke success evidence must be run on a Docker-enabled machine.
+- Next:
+- Run `pnpm mvp:scenario` and `./scripts/docker-smoke.sh` in Docker-enabled host and append evidence.
+- Continue replay-manifest breadth expansion and MIDI/audio follow-up planning.
 
 ### 2026-02-18
 - Completed:

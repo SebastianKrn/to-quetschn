@@ -1,6 +1,6 @@
 # GriffTab Execution Plan (Phase 1+2+3 Foundation)
 
-Last updated: 2026-02-18
+Last updated: 2026-02-26
 
 ## Objective
 Establish a production-ready foundation where coding agents can implement features quickly and safely with minimal ambiguity.
@@ -112,7 +112,7 @@ Status: Completed (unchanged in Sprint 1)
 - executed `./scripts/docker-smoke.sh` in this environment on 2026-02-17
 - recorded blocked output (`docker: command not found`) in `docs/qa/docker-smoke-sprint3.md`
 
-## Sprint 5 Progress (Implemented So Far)
+## Sprint 5 Progress (Implemented)
 1. Workflow cleanup completed:
 - retired parallel worktree protocol and aligned docs to single-session sequential branching
 - added explicit branch hygiene guidance and `.artifacts/` ignore policy
@@ -129,16 +129,30 @@ Status: Completed (unchanged in Sprint 1)
 - wired practice UI token selection/edit/save flow and renderer token metadata
 - added arrangement patch API tests and updated route test stubs
 
+## Sprint 6 Progress (Implemented)
+1. Local MVP orchestration workflow implemented:
+- added root commands `mvp:infra:up`, `mvp:apps:up`, `mvp:scenario`, `mvp:down`
+- added `scripts/mvp/*` host-app + Docker-infra workflow with replay mode default
+- added fail-fast Docker checks and deterministic `.artifacts/mvp` log output
+2. MVP realistic smoke automation implemented:
+- added Playwright config and smoke test at `apps/web/e2e/*`
+- smoke covers convert -> practice token edit -> export flow
+- run outputs `.artifacts/mvp-scenario-summary.json` with step-level telemetry
+3. Benchmark gate hardened to MVP target:
+- expanded benchmark manifest from 8 to 12 licensed fixtures (`sample-licensed-009..012`)
+- preserved parser spread (`json`, `musicxml`, `delimited`) and tuning spread (`GCFB`, `ADGC`, `BEADG`, `CFBB`)
+4. CI gate hardened:
+- switched benchmark step to strict blocking (`pnpm benchmark --strict --json .artifacts/benchmark-summary.json`)
+- added advisory MVP scenario step + artifact upload
+5. QA docs and runbooks updated:
+- added `docs/qa/mvp-local-smoke.md`
+- updated acceptance criteria and benchmark harness docs for Sprint 6 behavior
+
 ## Next Sprint Focus
-1. Deliver local realistic scenario automation:
-- add `pnpm mvp:infra:up`, `pnpm mvp:apps:up`, `pnpm mvp:scenario`, `pnpm mvp:down`
-- add Playwright smoke for convert -> practice -> token edit -> export, writing `.artifacts/mvp-scenario-summary.json`
-2. Harden benchmark gate to MVP bar:
-- expand manifest from 8 to 12 licensed fixtures with tuning/parser spread
-- switch CI benchmark step to strict blocking (`pnpm benchmark --strict --json .artifacts/benchmark-summary.json`)
-3. Execute Docker smoke runbook successfully in a Docker-enabled host and archive passing output evidence.
-4. Continue legal/licensing workflow and reviewer assignment for broader dataset readiness.
-5. Scope practice-mode audio/MIDI follow-up beyond v2 loop+shortcut capabilities after MVP local GA criteria are met.
+1. Execute Docker smoke runbook successfully in a Docker-enabled host and archive passing output evidence.
+2. Continue legal/licensing workflow and reviewer assignment for broader dataset readiness.
+3. Expand replay fixture manifest coverage beyond baseline entries for additional local deterministic datasets.
+4. Scope practice-mode audio/MIDI follow-up beyond v2 loop+shortcut capabilities after MVP local GA criteria are met.
 
 ## Sprint 2 Micro-Sprint Progress (Implemented)
 1. Added export contracts (`ExportJob`, `ExportQueuePayload`) and export queue topics.

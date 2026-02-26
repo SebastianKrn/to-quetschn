@@ -455,6 +455,7 @@ export function PracticePlayer({ arrangement, devUserId }: PracticePlayerProps) 
               <input
                 type="number"
                 min={1}
+                data-testid="token-row-input"
                 value={tokenPatchDraft.row}
                 onChange={(event) =>
                   setTokenPatchDraft((current) =>
@@ -475,6 +476,7 @@ export function PracticePlayer({ arrangement, devUserId }: PracticePlayerProps) 
               <input
                 type="number"
                 min={1}
+                data-testid="token-button-input"
                 value={tokenPatchDraft.button}
                 onChange={(event) =>
                   setTokenPatchDraft((current) =>
@@ -494,6 +496,7 @@ export function PracticePlayer({ arrangement, devUserId }: PracticePlayerProps) 
               <span>Balgrichtung</span>
               <select
                 value={tokenPatchDraft.direction}
+                data-testid="token-direction-select"
                 onChange={(event) =>
                   setTokenPatchDraft((current) =>
                     current
@@ -515,6 +518,7 @@ export function PracticePlayer({ arrangement, devUserId }: PracticePlayerProps) 
               type="button"
               onClick={saveTokenPatch}
               disabled={patchState.isSaving}
+              data-testid="token-save-button"
               className="rounded-md bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
             >
               {patchState.isSaving ? "Speichert..." : "Token speichern"}
@@ -524,11 +528,19 @@ export function PracticePlayer({ arrangement, devUserId }: PracticePlayerProps) 
           <p className="mt-2 text-xs text-slate-600">Noch kein Token ausgewählt.</p>
         )}
 
-        {patchState.message ? <p className="mt-2 text-xs text-slate-600">{patchState.message}</p> : null}
+        {patchState.message ? (
+          <p
+            className="mt-2 text-xs text-slate-600"
+            data-testid="token-patch-message"
+          >
+            {patchState.message}
+          </p>
+        ) : null}
       </section>
 
       <div
         ref={scrollRef}
+        data-testid="practice-svg-container"
         className="max-h-[65vh] overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-2"
       >
         <div

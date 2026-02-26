@@ -278,6 +278,7 @@ export function MvpDashboard() {
           <input
             type="file"
             accept="application/pdf,.pdf"
+            data-testid="conversion-file-input"
             onChange={(event) => {
               setSelectedFile(event.target.files?.item(0) ?? null);
             }}
@@ -288,6 +289,7 @@ export function MvpDashboard() {
           <select
             className="rounded-md border border-slate-300 px-3 py-2"
             value={selectedTuning}
+            data-testid="conversion-tuning-select"
             onChange={(event) => setSelectedTuning(event.target.value as Tuning)}
           >
             {TUNINGS.map((tuning) => (
@@ -305,6 +307,7 @@ export function MvpDashboard() {
           <input
             className="rounded-md border border-slate-300 px-3 py-2"
             value={devUserId}
+            data-testid="dev-user-id-input"
             onChange={(event) => setDevUserId(event.target.value)}
             placeholder="dev-user"
           />
@@ -313,6 +316,7 @@ export function MvpDashboard() {
           type="button"
           onClick={startConversion}
           disabled={isSubmitting}
+          data-testid="conversion-start-button"
           className="rounded-md bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
         >
           {isSubmitting ? "Konvertierung startet..." : "Konvertierung starten"}
@@ -324,24 +328,27 @@ export function MvpDashboard() {
       ) : null}
 
       {conversionState ? (
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section
+          className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+          data-testid="conversion-section"
+        >
           <h2 className="text-lg font-semibold text-slate-900">Konvertierungsstatus</h2>
           <dl className="mt-3 grid gap-2 text-sm text-slate-700 md:grid-cols-2">
             <div>
               <dt className="font-medium text-slate-900">Job</dt>
-              <dd>{conversionState.job.id}</dd>
+              <dd data-testid="conversion-job-id-value">{conversionState.job.id}</dd>
             </div>
             <div>
               <dt className="font-medium text-slate-900">Status</dt>
-              <dd>{conversionState.job.status}</dd>
+              <dd data-testid="conversion-status-value">{conversionState.job.status}</dd>
             </div>
             <div>
               <dt className="font-medium text-slate-900">Fortschritt</dt>
-              <dd>{conversionState.job.progress}%</dd>
+              <dd data-testid="conversion-progress-value">{conversionState.job.progress}%</dd>
             </div>
             <div>
               <dt className="font-medium text-slate-900">Fehlercode</dt>
-              <dd>{conversionState.job.errorCode ?? "-"}</dd>
+              <dd data-testid="conversion-error-value">{conversionState.job.errorCode ?? "-"}</dd>
             </div>
           </dl>
 
@@ -353,6 +360,7 @@ export function MvpDashboard() {
                 <button
                   key={`${suggestion.semitones}-${suggestion.targetKey}`}
                   type="button"
+                  data-testid="transpose-confirm-button"
                   className="block w-full rounded-md border border-slate-300 px-3 py-2 text-left text-sm hover:bg-slate-50"
                   onClick={() => confirmTranspose(suggestion)}
                 >
@@ -368,6 +376,7 @@ export function MvpDashboard() {
             <div className="mt-5 flex flex-wrap gap-2">
               <Link
                 href={`/practice/${conversionState.job.id}?devUserId=${encodeURIComponent(devUserId)}`}
+                data-testid="practice-open-link"
                 className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
               >
                 Praxis öffnen
@@ -376,6 +385,7 @@ export function MvpDashboard() {
                 type="button"
                 onClick={triggerExport}
                 disabled={isExporting}
+                data-testid="export-start-button"
                 className="rounded-md bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
               >
                 {isExporting ? "Export startet..." : "PDF Export starten"}
@@ -386,16 +396,21 @@ export function MvpDashboard() {
       ) : null}
 
       {exportState ? (
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section
+          className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+          data-testid="export-section"
+        >
           <h2 className="text-lg font-semibold text-slate-900">Exportstatus</h2>
           <p className="mt-2 text-sm text-slate-700">
-            {exportState.export.id}: {exportState.export.status}
+            <span data-testid="export-id-value">{exportState.export.id}</span>:{" "}
+            <span data-testid="export-status-value">{exportState.export.status}</span>
           </p>
           {exportState.downloadUrl ? (
             <a
               href={exportState.downloadUrl}
               target="_blank"
               rel="noreferrer"
+              data-testid="export-download-link"
               className="mt-3 inline-block rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
             >
               PDF herunterladen

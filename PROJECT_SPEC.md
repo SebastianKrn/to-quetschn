@@ -1,7 +1,7 @@
 # GriffTab Project Specification (Normalized)
 
-Last updated: 2026-02-18
-Status: Sprint 5 MVP core flow + token correction + hybrid OMR mode implemented (local scenario automation + strict benchmark CI hardening pending)
+Last updated: 2026-02-26
+Status: Sprint 6 local MVP scenario automation + strict benchmark CI gate implemented (Docker smoke success evidence still pending on Docker-enabled host)
 
 ## Implementation Status (Current)
 - Foundation scaffold remains verified and intact.
@@ -20,8 +20,8 @@ Status: Sprint 5 MVP core flow + token correction + hybrid OMR mode implemented 
   - owner-scoped Convex data access with lazy owner backfill for legacy ownerless records
   - server/worker Convex admin auth wiring with deployment-time key requirements
 - OMR normalization pipeline now supports JSON, delimited fallback, and MusicXML payload variants.
-- Benchmark regression harness is implemented with licensed-manifest filtering and advisory CI execution.
-- Benchmark dataset now includes 8 executable licensed fixtures across JSON, MusicXML, and delimited parser paths with strict thresholds.
+- Benchmark regression harness is implemented with licensed-manifest filtering and strict CI execution.
+- Benchmark dataset now includes 12 executable licensed fixtures across JSON, MusicXML, and delimited parser paths with strict thresholds.
 - Practice mode v2 is implemented at `/practice/[arrangementId]` with authenticated load, SVG rendering, tempo control, loop range controls, deterministic loop playback, and keyboard shortcuts.
 - OMR service supports hybrid provider selection via `OMR_MODE`:
   - `replay` mode for deterministic local runs using checksum manifest fixtures
@@ -29,6 +29,12 @@ Status: Sprint 5 MVP core flow + token correction + hybrid OMR mode implemented 
 - Web home page now provides German-first MVP conversion dashboard flow (upload, conversion status polling, transpose confirm, practice entry, export polling).
 - Arrangement correction flow supports owner-scoped single-token updates via `PATCH /api/arrangements/:id`.
 - Practice UI supports token selection from SVG and row/button/direction mutation with save feedback.
+- Local MVP orchestration scripts are available for deterministic smoke validation:
+  - `pnpm mvp:infra:up`
+  - `pnpm mvp:apps:up`
+  - `pnpm mvp:scenario`
+  - `pnpm mvp:down`
+- Playwright MVP smoke is implemented with scenario artifact output `.artifacts/mvp-scenario-summary.json`.
 - Single-session branch workflow is now the active protocol (dual-session worktree playbook retired).
 - Docker smoke runbook evidence is documented for blocked hosts and requires successful execution in a Docker-enabled environment for release proof.
 - OMR errors are typed and normalized using taxonomy:
@@ -104,6 +110,5 @@ Excluded in this foundation stage:
 - Final reference dataset curation (still synthetic-heavy despite broader fixtures)
 - Named music expert reviewer assignment
 - Production compose validation must still be executed successfully in Docker-enabled environment (current host remains blocked)
-- Benchmark threshold tuning/expansion to 12 licensed fixtures and strict CI blocking remains pending
-- Local scripted realistic scenario automation (`mvp:*` commands + Playwright smoke artifact) remains pending
+- Replay manifest breadth remains limited relative to benchmark fixture set and should be expanded in follow-up
 - Practice mode audio/MIDI follow-up remains out of current sprint scope

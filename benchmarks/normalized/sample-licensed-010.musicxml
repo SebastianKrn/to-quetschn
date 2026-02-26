@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<score-partwise version="3.1">
+  <work><work-title>Licensed CFBB sample (MusicXML v2)</work-title></work>
+  <part-list>
+    <score-part id="P1"><part-name>Accordion</part-name></score-part>
+  </part-list>
+  <part id="P1">
+    <measure number="1">
+      <attributes>
+        <divisions>1</divisions>
+        <time><beats>4</beats><beat-type>4</beat-type></time>
+      </attributes>
+      <direction><sound tempo="108"/></direction>
+      <note>
+        <pitch><step>C</step><octave>4</octave></pitch>
+        <type>quarter</type>
+      </note>
+      <note>
+        <pitch><step>D</step><octave>4</octave></pitch>
+        <type>quarter</type>
+      </note>
+      <note>
+        <pitch><step>E</step><octave>4</octave></pitch>
+        <type>quarter</type>
+      </note>
+    </measure>
+  </part>
+</score-partwise>

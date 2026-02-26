@@ -42,8 +42,14 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Benchmark (advisory)
-        run: pnpm benchmark --json .artifacts/benchmark-summary.json
+      - name: Benchmark (strict)
+        run: pnpm benchmark --strict --json .artifacts/benchmark-summary.json
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @grifftab/web exec playwright install --with-deps chromium
+
+      - name: MVP local scenario smoke (advisory)
+        run: pnpm mvp:scenario
         continue-on-error: true
 
       - name: Upload benchmark summary
@@ -52,4 +58,14 @@ jobs:
         with:
           name: benchmark-summary
           path: .artifacts/benchmark-summary.json
+          if-no-files-found: ignore
+
+      - name: Upload MVP scenario artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mvp-scenario-artifacts
+          path: |
+            .artifacts/mvp-scenario-summary.json
+            .artifacts/mvp/*.log
           if-no-files-found: ignore
