@@ -1,0 +1,58 @@
+name: Audiveris Scenario
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 3 * * 1"
+
+jobs:
+  audiveris-scenario:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Audiveris
+        run: |
+          curl -fsSL -o /tmp/audiveris.deb \
+            https://github.com/Audiveris/audiveris/releases/download/5.9.0/Audiveris-5.9.0-ubuntu24.04-x86_64.deb
+          sudo apt-get update
+          sudo apt-get install -y /tmp/audiveris.deb
+          if [ -x /usr/bin/Audiveris ] && [ ! -x /usr/bin/audiveris ]; then
+            sudo ln -s /usr/bin/Audiveris /usr/bin/audiveris
+          fi
+          audiveris --version || true
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @grifftab/web exec playwright install --with-deps chromium
+
+      - name: Audiveris MVP scenarios
+        run: pnpm pilot:scenario:audiveris
+
+      - name: Upload Audiveris scenario artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audiveris-scenario-artifacts
+          path: |
+            .artifacts/pilot/audiveris-summary.json
+            .artifacts/pilot/audiveris-summaries/*.json
+            .artifacts/mvp-scenario-summary.json
+            .artifacts/mvp/*.log
+          if-no-files-found: ignore

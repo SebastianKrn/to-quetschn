@@ -12,6 +12,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@grifftab/domain-types": "workspace:*"
+    "@grifftab/domain-types": "workspace:*",
+    "adm-zip": "^0.5.16"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.7"
   }
 }

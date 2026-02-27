@@ -48,9 +48,8 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm --filter @grifftab/web exec playwright install --with-deps chromium
 
-      - name: MVP local scenario smoke (advisory)
-        run: pnpm mvp:scenario
-        continue-on-error: true
+      - name: MVP local scenario smoke (required replay mode)
+        run: pnpm mvp:scenario --mode replay
 
       - name: Upload benchmark summary
         if: always()

@@ -1,5 +1,6 @@
 import {
   OmrErrorSchema,
+  type OmrNote,
   type Arrangement,
   type ConversionQueuePayload,
   type MappingEngine,
@@ -7,6 +8,15 @@ import {
   type Tuning,
   type TransposeSuggestion
 } from "@grifftab/domain-types";
+
+const NOTE_ORDER = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
+const FLAT_TO_SHARP: Record<string, string> = {
+  Db: "C#",
+  Eb: "D#",
+  Gb: "F#",
+  Ab: "G#",
+  Bb: "A#"
+};
 
 export interface DomainClient {
   updateConversion(input: {
@@ -24,6 +34,54 @@ export interface OmrClient {
     sourceFilePath: string;
     correlationId: string;
   }): Promise<OmrScore>;
+}
+
+function toMidi(pitch: string): number {
+  const match = pitch.trim().match(/^([A-Ga-g])([#b]?)(-?\d+)$/);
+  if (!match) {
+    throw new Error(`Invalid pitch: ${pitch}`);
+  }
+
+  const [, letterRaw = "", accidentalRaw = "", octaveRaw = ""] = match;
+  const letter = letterRaw.toUpperCase();
+  const accidental = accidentalRaw;
+  const octave = Number(octaveRaw);
+  const normalized = accidental === "b" ? FLAT_TO_SHARP[`${letter}b`] ?? `${letter}${accidental}` : `${letter}${accidental}`;
+  const semitone = NOTE_ORDER.indexOf(normalized as (typeof NOTE_ORDER)[number]);
+
+  if (semitone < 0) {
+    throw new Error(`Unsupported pitch: ${pitch}`);
+  }
+
+  return (octave + 1) * 12 + semitone;
+}
+
+function fromMidi(midi: number): string {
+  const semitone = ((midi % 12) + 12) % 12;
+  const octave = Math.floor(midi / 12) - 1;
+  return `${NOTE_ORDER[semitone]}${octave}`;
+}
+
+function transposeNote(note: OmrNote, semitones: number): OmrNote {
+  if (semitones === 0) {
+    return note;
+  }
+
+  return {
+    ...note,
+    pitch: fromMidi(toMidi(note.pitch) + semitones)
+  };
+}
+
+function applyTranspose(score: OmrScore, semitones: number | undefined): OmrScore {
+  if (!semitones || semitones === 0) {
+    return score;
+  }
+
+  return {
+    ...score,
+    notes: score.notes.map((note) => transposeNote(note, semitones))
+  };
 }
 
 export async function runConversionPipeline(input: {
@@ -45,6 +103,7 @@ export async function runConversionPipeline(input: {
     sourceFilePath: payload.sourceDownloadUrl ?? payload.sourceFileId,
     correlationId: payload.correlationId
   });
+  const transposedScore = applyTranspose(score, payload.transposeSemitones);
 
   await domainClient.updateConversion({
     id: payload.conversionId,
@@ -53,9 +112,9 @@ export async function runConversionPipeline(input: {
     errorCode: null
   });
 
-  const mapped = await mappingEngine.mapScoreToGriffschrift(score, payload.tuning as Tuning);
+  const mapped = await mappingEngine.mapScoreToGriffschrift(transposedScore, payload.tuning as Tuning);
 
-  if (mapped.transposeSuggestions.length > 0) {
+  if (mapped.transposeSuggestions.length > 0 && !payload.transposeSemitones) {
     await domainClient.updateConversion({
       id: payload.conversionId,
       status: "needs_transpose_confirmation",
@@ -73,7 +132,12 @@ export async function runConversionPipeline(input: {
     metadata: {
       ...mapped.arrangement.metadata,
       conversionId: payload.conversionId,
-      correlationId: payload.correlationId
+      correlationId: payload.correlationId,
+      ...(payload.transposeSemitones
+        ? {
+            transposeSemitones: String(payload.transposeSemitones)
+          }
+        : {})
     }
   }, payload.ownerUserId);
 

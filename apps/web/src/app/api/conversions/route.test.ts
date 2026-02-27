@@ -6,6 +6,7 @@ import {
   type ConversionRuntime,
   type DomainStore
 } from "@/lib/convex";
+import { resetWebEnvForTests } from "@/lib/env";
 import { setQueueClientForTests } from "@/lib/queue";
 import { setStorageClientForTests } from "@/lib/storage";
 
@@ -22,6 +23,8 @@ function createStore(): DomainStore {
         tuning: input.tuning,
         progress: 0,
         errorCode: null,
+        rightsConfirmedAt: input.rightsConfirmedAt ?? null,
+        rightsConfirmationSource: input.rightsConfirmationSource ?? null,
         createdAt: now,
         updatedAt: now
       });
@@ -103,6 +106,8 @@ function createStore(): DomainStore {
 
 describe("POST /api/conversions", () => {
   beforeEach(() => {
+    process.env.ENFORCE_UPLOAD_RIGHTS_CONFIRMATION = "false";
+    resetWebEnvForTests();
     setDomainStoreForTests(createStore());
     setQueueClientForTests({
       async enqueueConversion() {
@@ -129,6 +134,8 @@ describe("POST /api/conversions", () => {
     setDomainStoreForTests(null);
     setQueueClientForTests(null);
     setStorageClientForTests(null);
+    process.env.ENFORCE_UPLOAD_RIGHTS_CONFIRMATION = "false";
+    resetWebEnvForTests();
   });
 
   it("rejects unauthenticated requests", async () => {
@@ -244,5 +251,58 @@ describe("POST /api/conversions", () => {
     expect(body.ok).toBe(false);
     expect(body.message).toBe("Datei konnte nicht im Objektspeicher abgelegt werden.");
     expect(body.details?.error).toBe("NoSuchBucket");
+  });
+
+  it("rejects conversion when rights confirmation is required but missing", async () => {
+    process.env.ENFORCE_UPLOAD_RIGHTS_CONFIRMATION = "true";
+    resetWebEnvForTests();
+
+    const request = new Request("http://localhost/api/conversions", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-dev-user-id": "dev-user"
+      },
+      body: JSON.stringify({ inputFileId: "file-1", tuning: "GCFB" })
+    });
+
+    const response = await POST(request);
+    const body = (await response.json()) as {
+      ok: boolean;
+      message: string;
+    };
+
+    expect(response.status).toBe(400);
+    expect(body.ok).toBe(false);
+    expect(body.message).toBe("Bitte Upload-Rechte bestätigen, bevor die Konvertierung gestartet wird.");
+  });
+
+  it("accepts conversion when rights confirmation is required and provided", async () => {
+    process.env.ENFORCE_UPLOAD_RIGHTS_CONFIRMATION = "true";
+    resetWebEnvForTests();
+
+    const request = new Request("http://localhost/api/conversions", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-dev-user-id": "dev-user"
+      },
+      body: JSON.stringify({
+        inputFileId: "file-1",
+        tuning: "GCFB",
+        rightsConfirmed: true
+      })
+    });
+
+    const response = await POST(request);
+    const body = (await response.json()) as {
+      ok: boolean;
+      job: { rightsConfirmedAt?: string | null; rightsConfirmationSource?: string | null };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.ok).toBe(true);
+    expect(body.job.rightsConfirmedAt).toBeTruthy();
+    expect(body.job.rightsConfirmationSource).toBe("api_json");
   });
 });

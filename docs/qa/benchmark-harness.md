@@ -6,8 +6,8 @@ Run deterministic OMR normalization + mapping regressions from a manifest while 
 ## Manifest
 Use `benchmarks/manifest.json` (template: `docs/qa/benchmark-manifest.template.json`).
 
-Sprint 6 baseline:
-- 12 executable `licenseStatus=licensed` entries
+Sprint 7 baseline:
+- 20 executable `licenseStatus=licensed` entries
 - strict thresholds retained for all licensed fixtures unless explicitly documented per-entry
 
 Entry fields:

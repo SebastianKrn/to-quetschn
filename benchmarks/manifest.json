@@ -191,6 +191,126 @@
       "tuning": "GCFB",
       "licenseStatus": "pending",
       "notes": "Replace with licensed reference set"
+    },
+    {
+      "id": "sample-licensed-013",
+      "title": "Licensed synthetic benchmark (013)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-013.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-013.musicxml",
+      "expectedJson": "benchmarks/expected/sample-licensed-013.json",
+      "tuning": "GCFB",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 7 fixture expansion: strict defaults retained",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-014",
+      "title": "Licensed synthetic benchmark (014)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-014.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-014.json",
+      "expectedJson": "benchmarks/expected/sample-licensed-014.json",
+      "tuning": "ADGC",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 7 fixture expansion: strict defaults retained",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-015",
+      "title": "Licensed synthetic benchmark (015)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-015.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-015.json",
+      "expectedJson": "benchmarks/expected/sample-licensed-015.json",
+      "tuning": "BEADG",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 7 fixture expansion: strict defaults retained",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-016",
+      "title": "Licensed synthetic benchmark (016)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-016.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-016.json",
+      "expectedJson": "benchmarks/expected/sample-licensed-016.json",
+      "tuning": "CFBB",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 7 fixture expansion: strict defaults retained",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-017",
+      "title": "Licensed synthetic benchmark (017)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-017.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-017.txt",
+      "expectedJson": "benchmarks/expected/sample-licensed-017.json",
+      "tuning": "GCFB",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 7 fixture expansion: strict defaults retained",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-018",
+      "title": "Licensed synthetic benchmark (018)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-018.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-018.musicxml",
+      "expectedJson": "benchmarks/expected/sample-licensed-018.json",
+      "tuning": "CFBB",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 7 fixture expansion: strict defaults retained",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-019",
+      "title": "Licensed synthetic benchmark (019)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-019.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-019.txt",
+      "expectedJson": "benchmarks/expected/sample-licensed-019.json",
+      "tuning": "BEADG",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 7 fixture expansion: strict defaults retained",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
+    },
+    {
+      "id": "sample-licensed-020",
+      "title": "Licensed synthetic benchmark (020)",
+      "sourcePdf": "benchmarks/pdfs/sample-licensed-020.pdf",
+      "normalizedInput": "benchmarks/normalized/sample-licensed-020.json",
+      "expectedJson": "benchmarks/expected/sample-licensed-020.json",
+      "tuning": "ADGC",
+      "licenseStatus": "licensed",
+      "notes": "Sprint 7 fixture expansion: strict defaults retained",
+      "thresholds": {
+        "tokenMatchRatioMin": 1,
+        "requireMeasureCount": true,
+        "requireTransposeSuggestions": true
+      }
     }
   ]
 }

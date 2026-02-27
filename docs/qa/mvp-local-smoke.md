@@ -42,11 +42,16 @@ pnpm mvp:apps:up
 
 ## One-Command Automated Smoke
 ```bash
-pnpm mvp:scenario
+pnpm mvp:scenario --mode replay
 ```
 Expected outputs:
 - `.artifacts/mvp-scenario-summary.json`
 - service logs in `.artifacts/mvp/*.log`
+
+Audiveris parity mode:
+```bash
+pnpm mvp:scenario --mode audiveris --fixture benchmarks/pdfs/sample-licensed-001.pdf
+```
 
 ## Teardown
 ```bash

@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { memoryAdapter } from "better-auth/adapters/memory";
+import { memoryAdapter, type MemoryDB } from "better-auth/adapters/memory";
 import { nextCookies, toNextJsHandler } from "better-auth/next-js";
 import { PostgresDialect } from "kysely";
 import { Pool } from "pg";
@@ -21,6 +21,7 @@ const env = getWebEnv();
 
 const globalScope = globalThis as unknown as {
   __grifftabAuthPool?: Pool;
+  __grifftabAuthMemoryDb?: MemoryDB;
 };
 
 const pool =
@@ -33,12 +34,25 @@ if (!globalScope.__grifftabAuthPool) {
   globalScope.__grifftabAuthPool = pool;
 }
 
-const database =
-  env.NODE_ENV === "test"
-    ? memoryAdapter({})
-    : new PostgresDialect({
-        pool
-      });
+const useMemoryAuthStore = env.NODE_ENV === "test" || env.PILOT_MODE;
+const memoryDb: MemoryDB =
+  globalScope.__grifftabAuthMemoryDb ??
+  ({
+    user: [],
+    session: [],
+    account: [],
+    verification: []
+  } satisfies MemoryDB);
+
+if (!globalScope.__grifftabAuthMemoryDb) {
+  globalScope.__grifftabAuthMemoryDb = memoryDb;
+}
+
+const database = useMemoryAuthStore
+  ? memoryAdapter(memoryDb)
+  : new PostgresDialect({
+      pool
+    });
 
 function parseTrustedOrigins(): string[] {
   const dynamicOrigins = (env.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
@@ -60,7 +74,7 @@ export const auth = betterAuth({
     requireEmailVerification: false
   },
   advanced: {
-    useSecureCookies: env.NODE_ENV === "staging" || env.NODE_ENV === "production"
+    useSecureCookies: (env.NODE_ENV === "staging" || env.NODE_ENV === "production") && !env.PILOT_MODE
   },
   plugins: [nextCookies()]
 });

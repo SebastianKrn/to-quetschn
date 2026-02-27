@@ -16,11 +16,13 @@ ensure_artifacts_dir
 load_env_file
 
 export NODE_ENV="development"
-export OMR_MODE="replay"
+export OMR_MODE="${OMR_MODE_OVERRIDE:-replay}"
 export OMR_REPLAY_MANIFEST_PATH="$ROOT_DIR/benchmarks/replay-manifest.json"
 export LOCAL_DOMAIN_STORE_PATH="$LOCAL_DOMAIN_STATE_FILE"
 
 rm -f "$LOCAL_DOMAIN_STATE_FILE"
+
+log "Launching app services with OMR_MODE=$OMR_MODE"
 
 OMR_LOG="$ARTIFACT_DIR/omr-service.log"
 WORKER_LOG="$ARTIFACT_DIR/worker.log"

@@ -5,6 +5,8 @@ const webEnvSchema = z.object({
   APP_BASE_URL: z.string().url().default("http://localhost:3000"),
   FEATURE_PUBLIC_SHARING: z.enum(["true", "false"]).default("false"),
   FEATURE_TRANSPOSE_SUGGESTIONS: z.enum(["true", "false"]).default("true"),
+  PILOT_MODE: z.enum(["true", "false"]).default("false"),
+  ENFORCE_UPLOAD_RIGHTS_CONFIRMATION: z.enum(["true", "false"]).default("false"),
   OMR_SERVICE_URL: z.string().url().default("http://localhost:4100"),
 
   BETTER_AUTH_URL: z.string().url().default("http://localhost:3000"),
@@ -78,4 +80,8 @@ export function getWebEnv(): WebEnv {
   cachedEnv = webEnvSchema.parse(process.env);
   assertSecureRuntimeConfig(cachedEnv);
   return cachedEnv;
+}
+
+export function resetWebEnvForTests(): void {
+  cachedEnv = null;
 }

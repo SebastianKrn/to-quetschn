@@ -5,10 +5,19 @@ import { defineConfig, devices } from "@playwright/test";
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = path.resolve(currentDir, "../../..");
 
+function parseTimeoutMs(value: string | undefined, fallbackMs: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallbackMs;
+  }
+
+  return Math.floor(parsed);
+}
+
 export default defineConfig({
   testDir: currentDir,
   testMatch: "mvp-smoke.pw.ts",
-  timeout: 240_000,
+  timeout: parseTimeoutMs(process.env.MVP_SCENARIO_TEST_TIMEOUT_MS, 240_000),
   expect: {
     timeout: 15_000
   },

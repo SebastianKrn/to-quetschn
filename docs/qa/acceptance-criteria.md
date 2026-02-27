@@ -97,3 +97,36 @@
 - CI benchmark step runs strict blocking mode:
   - `pnpm benchmark --strict --json .artifacts/benchmark-summary.json`
 - CI includes advisory MVP smoke execution and uploads scenario artifacts.
+
+## Sprint 7 Pilot Readiness Addendum
+
+### Pilot Runtime and Auth Coverage
+- Pilot local Docker stack exists (`docker-compose.pilot.yml`) and starts `web`, `omr-service`, `worker`, `postgres`, `redis`, `minio`.
+- Pilot flow supports BetterAuth registration/login without dev-header dependence.
+- Dashboard hides dev-user controls outside `development|test`.
+- Conversion upload supports explicit rights acknowledgement and enforces it when `ENFORCE_UPLOAD_RIGHTS_CONFIRMATION=true`.
+- Conversion job payload includes optional rights metadata (`rightsConfirmedAt`, `rightsConfirmationSource`).
+
+### OMR and Scenario Coverage
+- OMR health response includes additive capability diagnostics:
+  - `audiverisAvailable`
+  - `audiverisVersion`
+- MVP scenario supports explicit mode selection:
+  - `pnpm mvp:scenario --mode replay`
+  - `pnpm mvp:scenario --mode audiveris`
+- Pilot audiveris scenario batch command exists:
+  - `pnpm pilot:scenario:audiveris`
+
+### Benchmark and Replay Coverage
+- Benchmark manifest executes at least twenty licensed entries in strict mode.
+- Replay manifest includes coverage entries for Sprint 7 fixture expansion.
+- Fixture registration helper command exists:
+  - `pnpm fixtures:register --pdf <path> --normalized <path> --id <id> --license licensed`
+
+### CI/Release Coverage
+- Main CI replay scenario is required (non-advisory).
+- Dedicated audiveris scenario workflow exists for manual/scheduled runs with artifact upload.
+- Pilot smoke command exists and captures evidence log:
+  - `pnpm pilot:smoke`
+- Evidence bundling command exists:
+  - `pnpm pilot:evidence`

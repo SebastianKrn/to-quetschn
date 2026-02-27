@@ -14,6 +14,7 @@ interface ScenarioSummary {
   timestamp: string;
   fixture: string;
   devUserId: string;
+  authMode: "dev-header" | "session";
   conversionId: string | null;
   arrangementId: string | null;
   exportId: string | null;
@@ -29,6 +30,15 @@ function errorMessage(error: unknown): string {
   return String(error);
 }
 
+function parseTimeoutMs(value: string | undefined, fallbackMs: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallbackMs;
+  }
+
+  return Math.floor(parsed);
+}
+
 test("MVP smoke: convert -> practice edit -> export", async ({ page }) => {
   const currentDir = path.dirname(fileURLToPath(import.meta.url));
   const workspaceRoot = path.resolve(currentDir, "../../..");
@@ -36,11 +46,18 @@ test("MVP smoke: convert -> practice edit -> export", async ({ page }) => {
   const summaryPath =
     process.env.MVP_SCENARIO_SUMMARY_PATH ?? path.join(workspaceRoot, ".artifacts/mvp-scenario-summary.json");
   const devUserId = process.env.MVP_DEV_USER_ID ?? "dev-user";
+  const authMode = process.env.MVP_SCENARIO_AUTH_MODE === "session" ? "session" : "dev-header";
+  const userEmail = process.env.MVP_SCENARIO_USER_EMAIL ?? "pilot-tester@example.com";
+  const userPassword = process.env.MVP_SCENARIO_USER_PASSWORD ?? "PilotPassw0rd!";
+  const userName = process.env.MVP_SCENARIO_USER_NAME ?? "Pilot Tester";
+  const conversionTimeoutMs = parseTimeoutMs(process.env.MVP_SCENARIO_CONVERSION_TIMEOUT_MS, 180_000);
+  const exportTimeoutMs = parseTimeoutMs(process.env.MVP_SCENARIO_EXPORT_TIMEOUT_MS, 120_000);
 
   const summary: ScenarioSummary = {
     timestamp: new Date().toISOString(),
     fixture: fixturePath,
     devUserId,
+    authMode,
     conversionId: null,
     arrangementId: null,
     exportId: null,
@@ -70,14 +87,65 @@ test("MVP smoke: convert -> practice edit -> export", async ({ page }) => {
   };
 
   try {
+    if (authMode === "session") {
+      await runStep("authenticate-session-user", async () => {
+        const postAuthRequest = async (
+          endpoint: string,
+          payload: {
+            name?: string;
+            email: string;
+            password: string;
+            callbackURL: string;
+          }
+        ) => {
+          const maxAttempts = 3;
+          for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+            try {
+              return await page.request.post(endpoint, { data: payload });
+            } catch (error) {
+              if (attempt === maxAttempts) {
+                throw error;
+              }
+              await page.waitForTimeout(1_000);
+            }
+          }
+
+          throw new Error(`Unable to complete auth request to ${endpoint}`);
+        };
+
+        const signUpResponse = await postAuthRequest("/api/auth/sign-up/email", {
+          name: userName,
+          email: userEmail,
+          password: userPassword,
+          callbackURL: "/"
+        });
+
+        if (!signUpResponse.ok()) {
+          const signInResponse = await postAuthRequest("/api/auth/sign-in/email", {
+            email: userEmail,
+            password: userPassword,
+            callbackURL: "/"
+          });
+          expect(signInResponse.ok()).toBeTruthy();
+        }
+      });
+    }
+
     await runStep("open-dashboard", async () => {
       await page.goto("/");
       await expect(page.getByTestId("conversion-file-input")).toBeVisible();
     });
 
     await runStep("start-conversion", async () => {
-      await page.getByTestId("dev-user-id-input").fill(devUserId);
+      const devUserInput = page.getByTestId("dev-user-id-input");
+      if (await devUserInput.count()) {
+        await devUserInput.fill(devUserId);
+      }
       await page.getByTestId("conversion-file-input").setInputFiles(fixturePath);
+      const rightsCheckbox = page.getByTestId("rights-confirmed-checkbox");
+      if (await rightsCheckbox.count()) {
+        await rightsCheckbox.check();
+      }
       await page.getByTestId("conversion-start-button").click();
       await expect(page.getByTestId("conversion-section")).toBeVisible();
       summary.conversionId = (await page.getByTestId("conversion-job-id-value").innerText()).trim();
@@ -86,7 +154,7 @@ test("MVP smoke: convert -> practice edit -> export", async ({ page }) => {
 
     await runStep("wait-conversion-completed", async () => {
       const statusLocator = page.getByTestId("conversion-status-value");
-      const deadlineMs = Date.now() + 180_000;
+      const deadlineMs = Date.now() + conversionTimeoutMs;
 
       while (Date.now() < deadlineMs) {
         const status = (await statusLocator.innerText()).trim();
@@ -141,10 +209,15 @@ test("MVP smoke: convert -> practice edit -> export", async ({ page }) => {
         throw new Error("Arrangement ID missing before export step");
       }
 
+      const requestHeaders =
+        authMode === "dev-header"
+          ? {
+              "x-dev-user-id": devUserId
+            }
+          : undefined;
+
       const triggerResponse = await page.request.post(`/api/arrangements/${summary.arrangementId}/export`, {
-        headers: {
-          "x-dev-user-id": devUserId
-        }
+        headers: requestHeaders
       });
 
       expect(triggerResponse.ok()).toBeTruthy();
@@ -161,12 +234,10 @@ test("MVP smoke: convert -> practice edit -> export", async ({ page }) => {
 
       summary.exportId = triggerBody.export.id;
 
-      const deadlineMs = Date.now() + 120_000;
+      const deadlineMs = Date.now() + exportTimeoutMs;
       while (Date.now() < deadlineMs) {
         const statusResponse = await page.request.get(`/api/arrangements/${summary.arrangementId}/export`, {
-          headers: {
-            "x-dev-user-id": devUserId
-          }
+          headers: requestHeaders
         });
 
         expect(statusResponse.ok()).toBeTruthy();

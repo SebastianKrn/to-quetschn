@@ -20,6 +20,12 @@ Last updated: 2026-02-27
   - MinIO bootstrap command fix in `mvp:infra:up`
   - shared local fallback domain state (`LOCAL_DOMAIN_STORE_PATH`) for web+worker local-dev runs
   - local S3 auto-create bucket guardrails + conversion storage failure `503` response
+- Sprint 7 pilot-readiness implementation is in the worktree:
+  - pilot Docker packaging (`docker-compose.pilot.yml`, app Dockerfiles, pilot scripts)
+  - pilot auth UX (`/login`, `/register`) + dashboard pilot/session flow
+  - upload rights confirmation contract and metadata persistence
+  - benchmark and replay manifests expanded to 20 licensed fixtures
+  - audiveris scenario/evidence command surface added
 - Single-session sequential branch workflow is the active protocol (parallel worktree flow retired).
 - Public sharing remains blocked by default pending legal completion.
 
@@ -78,33 +84,39 @@ Last updated: 2026-02-27
   - `pnpm validate:skills` and `pnpm validate:memory` pass
 
 ## Open Risks
-- Docker CLI unavailable in this execution environment, so compose config validation could not run here.
-- Docker smoke success evidence is still not captured in a Docker-enabled host/session.
-- Replay manifest coverage remains narrower than benchmark fixture coverage.
+- Pilot smoke currently fails under session-auth flow (`.artifacts/pilot/pilot-scenario-summary.json` shows failed auth step).
+- Audiveris capability/reporting remains unresolved in pilot runtime (`audiverisAvailable=false` in latest pilot smoke log).
+- Audiveris pilot scenario is failing (`.artifacts/pilot/audiveris-summary.json` shows `passed=0 failed=3`).
 - Practice runtime still lacks MIDI/audio integration follow-up beyond v2 loop+shortcut scope.
 
 ## Next Actions
-1. Run final local MVP manual verification using `docs/qa/mvp-local-smoke.md`.
-2. Run Docker compose smoke validation successfully in a Docker-enabled environment and archive passing evidence.
-3. Expand replay manifest coverage for additional deterministic local fixture runs.
+1. Fix pilot session auth path in Playwright smoke and re-run `pnpm pilot:smoke` to green.
+2. Fix Audiveris runtime availability in OMR service container, then re-run `pnpm pilot:scenario:audiveris`.
+3. Re-generate full evidence bundle with passing artifacts via `pnpm pilot:evidence`.
 4. Scope next practice increment for MIDI/audio follow-up.
 5. Continue legal/licensing workflow and reviewer assignment.
 
 ## Next Session Bootstrap
-1. Start from updated `main` after Sprint 6 merges and verify clean state:
+1. Sync and inspect branch state:
+- `git fetch --prune`
 - `git status -sb`
-- `git log --oneline -n 3`
-2. Run baseline checks:
+- `git log --oneline -n 5`
+2. Run baseline validations:
 - `pnpm install`
 - `pnpm validate:skills`
 - `pnpm validate:memory`
-- `pnpm verify`
-3. Run Docker smoke in Docker-enabled host and append results to:
-- `docs/qa/docker-smoke-sprint3.md`
-4. Resume next open slices:
-- Docker smoke success evidence capture on Docker-enabled host
-- replay-manifest breadth expansion for additional local deterministic flows
-5. Before merge, keep final context sync in one commit touching:
+3. Re-run required gates in order after fixes:
+- `pnpm test`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm build`
+4. Execute pilot gate commands:
+- `pnpm benchmark --strict --json .artifacts/benchmark-summary.json`
+- `pnpm mvp:scenario --mode replay`
+- `pnpm pilot:scenario:audiveris`
+- `pnpm pilot:smoke`
+- `pnpm pilot:evidence`
+5. Before merge, keep context sync in one commit touching:
 - `PROJECT_SPEC.md`
 - `PROJECT_PLAN.md`
 - `memory.md`
@@ -118,6 +130,12 @@ Last updated: 2026-02-27
 
 ### 2026-02-27
 - Completed:
+- Implemented Sprint 7 pilot-readiness scope in workspace:
+  - pilot Dockerfiles/compose/scripts
+  - pilot auth routes + dashboard session flow
+  - upload rights confirmation contract + metadata
+  - benchmark/replay expansion to 20 licensed fixtures
+  - audiveris scenario and evidence commands
 - Fixed local MVP infra bootstrap failure in `scripts/mvp/infra-up.sh` (`minio/mc` entrypoint now explicit).
 - Added local S3 resilience in web/worker storage clients:
   - auto head/create bucket in `development|test`
@@ -142,11 +160,13 @@ Last updated: 2026-02-27
 - Decisions made:
 - Keep fallback domain-state sharing scoped to local-dev mode only (`NODE_ENV=development` + `CONVEX_DEPLOYMENT=local-dev`) to avoid impacting secure environments.
 - Keep conversion upload failures explicit (`503`) rather than silent retry loops, so local diagnostics remain actionable.
+- Keep pilot release blocked until both session-auth smoke and Audiveris scenario are passing with evidence artifacts.
 - Blockers:
-- Docker smoke success evidence for production compose remains open and must still run in Docker-enabled release host context.
+- Pilot smoke auth step is failing in session mode (login response not OK).
+- OMR health reported `audiverisAvailable=false` in latest pilot smoke.
+- Audiveris scenario batch is failing (`passed=0 failed=3`).
 - Next:
-- Run manual final MVP verification checklist from `docs/qa/mvp-local-smoke.md`.
-- Capture passing Docker smoke evidence on Docker-enabled host and append to `docs/qa/docker-smoke-sprint3.md`.
+- Fix pilot auth and audiveris runtime issues, then re-run pilot gate commands and regenerate evidence bundle.
 
 ### 2026-02-26
 - Completed:

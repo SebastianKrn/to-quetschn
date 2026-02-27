@@ -22,6 +22,13 @@ interface ExportState {
   downloadUrl?: string;
 }
 
+interface MvpDashboardProps {
+  allowDevHeaderAuth: boolean;
+  sessionUserId: string | null;
+  pilotMode: boolean;
+  enforceRightsConfirmation: boolean;
+}
+
 function shouldPollConversion(status: ConversionJob["status"]): boolean {
   return status === "queued" || status === "processing";
 }
@@ -30,10 +37,16 @@ function shouldPollExport(status: ExportJob["status"]): boolean {
   return status === "queued" || status === "processing";
 }
 
-export function MvpDashboard() {
+export function MvpDashboard({
+  allowDevHeaderAuth,
+  sessionUserId,
+  pilotMode,
+  enforceRightsConfirmation
+}: MvpDashboardProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedTuning, setSelectedTuning] = useState<Tuning>("GCFB");
-  const [devUserId, setDevUserId] = useState("dev-user");
+  const [devUserId, setDevUserId] = useState(sessionUserId ?? "dev-user");
+  const [rightsConfirmed, setRightsConfirmed] = useState(!enforceRightsConfirmation);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [conversionState, setConversionState] = useState<ConversionState | null>(null);
@@ -43,11 +56,11 @@ export function MvpDashboard() {
   const authHeaders = useMemo<Record<string, string>>(() => {
     const headers: Record<string, string> = {};
     const trimmed = devUserId.trim();
-    if (trimmed) {
+    if (allowDevHeaderAuth && trimmed) {
       headers["x-dev-user-id"] = trimmed;
     }
     return headers;
-  }, [devUserId]);
+  }, [allowDevHeaderAuth, devUserId]);
 
   const refreshConversion = useCallback(
     async (conversionId: string) => {
@@ -158,6 +171,10 @@ export function MvpDashboard() {
       setMessage("Bitte zuerst eine PDF-Datei auswählen.");
       return;
     }
+    if (enforceRightsConfirmation && !rightsConfirmed) {
+      setMessage("Bitte bestätige, dass du die Nutzungsrechte für den Upload besitzt.");
+      return;
+    }
 
     setIsSubmitting(true);
     setMessage(null);
@@ -168,6 +185,7 @@ export function MvpDashboard() {
       const formData = new FormData();
       formData.set("file", selectedFile);
       formData.set("tuning", selectedTuning);
+      formData.set("rightsConfirmed", rightsConfirmed ? "true" : "false");
 
       const response = await fetch("/api/conversions", {
         method: "POST",
@@ -267,12 +285,27 @@ export function MvpDashboard() {
         <p className="mt-2 text-sm text-slate-700">
           PDF hochladen, Konvertierung beobachten, Transposition bestätigen, Praxis öffnen und PDF exportieren.
         </p>
-        <p className="mt-2 text-xs text-slate-500">
-          Lokal wird standardmäßig der Dev-Header genutzt. Für echten Login steht BetterAuth weiterhin bereit.
-        </p>
+        {allowDevHeaderAuth ? (
+          <p className="mt-2 text-xs text-slate-500">
+            Entwicklung/Test: Dev-Header Login ist aktiv. Für Pilotbetrieb nutze BetterAuth Login.
+          </p>
+        ) : (
+          <p className="mt-2 text-xs text-slate-500">
+            Angemeldet als <span className="font-semibold">{sessionUserId}</span>. Dev-Header ist deaktiviert.
+          </p>
+        )}
+        {pilotMode ? (
+          <p className="mt-1 text-xs text-slate-500">
+            Pilotmodus aktiv: Inhalte bleiben privat, öffentliche Freigabe ist weiterhin deaktiviert.
+          </p>
+        ) : null}
       </section>
 
-      <section className="grid gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-3">
+      <section
+        className={`grid gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${
+          allowDevHeaderAuth ? "md:grid-cols-3" : "md:grid-cols-2"
+        }`}
+      >
         <label className="flex flex-col gap-2 text-sm text-slate-700">
           <span className="font-medium">PDF Datei</span>
           <input
@@ -302,20 +335,35 @@ export function MvpDashboard() {
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-2 text-sm text-slate-700">
-          <span className="font-medium">Dev User ID</span>
+        {allowDevHeaderAuth ? (
+          <label className="flex flex-col gap-2 text-sm text-slate-700">
+            <span className="font-medium">Dev User ID</span>
+            <input
+              className="rounded-md border border-slate-300 px-3 py-2"
+              value={devUserId}
+              data-testid="dev-user-id-input"
+              onChange={(event) => setDevUserId(event.target.value)}
+              placeholder="dev-user"
+            />
+          </label>
+        ) : null}
+        <label className="col-span-full flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700">
           <input
-            className="rounded-md border border-slate-300 px-3 py-2"
-            value={devUserId}
-            data-testid="dev-user-id-input"
-            onChange={(event) => setDevUserId(event.target.value)}
-            placeholder="dev-user"
+            type="checkbox"
+            className="mt-1 h-4 w-4"
+            checked={rightsConfirmed}
+            data-testid="rights-confirmed-checkbox"
+            onChange={(event) => setRightsConfirmed(event.target.checked)}
           />
+          <span>
+            Ich bestätige, dass ich die notwendigen Rechte für den Upload und die private Testnutzung dieser Noten
+            besitze.
+          </span>
         </label>
         <button
           type="button"
           onClick={startConversion}
-          disabled={isSubmitting}
+          disabled={isSubmitting || (enforceRightsConfirmation && !rightsConfirmed)}
           data-testid="conversion-start-button"
           className="rounded-md bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
         >
@@ -375,7 +423,11 @@ export function MvpDashboard() {
           {conversionState.job.status === "completed" ? (
             <div className="mt-5 flex flex-wrap gap-2">
               <Link
-                href={`/practice/${conversionState.job.id}?devUserId=${encodeURIComponent(devUserId)}`}
+                href={
+                  allowDevHeaderAuth
+                    ? `/practice/${conversionState.job.id}?devUserId=${encodeURIComponent(devUserId)}`
+                    : `/practice/${conversionState.job.id}`
+                }
                 data-testid="practice-open-link"
                 className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
               >

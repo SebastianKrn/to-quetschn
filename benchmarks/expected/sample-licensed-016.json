@@ -1,0 +1,35 @@
+{
+  "arrangement": {
+    "measureCount": 1,
+    "tokenSequence": [
+      {
+        "measure": 1,
+        "beat": 0,
+        "pitch": "C4",
+        "row": 1,
+        "button": 1,
+        "direction": "push",
+        "duration": "quarter"
+      },
+      {
+        "measure": 1,
+        "beat": 1,
+        "pitch": "D4",
+        "row": 3,
+        "button": 2,
+        "direction": "push",
+        "duration": "quarter"
+      },
+      {
+        "measure": 1,
+        "beat": 2,
+        "pitch": "E4",
+        "row": 1,
+        "button": 2,
+        "direction": "push",
+        "duration": "quarter"
+      }
+    ]
+  },
+  "transposeSuggestionSemitones": []
+}

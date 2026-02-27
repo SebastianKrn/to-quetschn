@@ -19,6 +19,8 @@ export const ConversionJobSchema = z.object({
   tuning: z.enum(TUNINGS),
   progress: z.number().min(0).max(100),
   errorCode: z.string().nullable(),
+  rightsConfirmedAt: z.string().datetime().nullable().optional(),
+  rightsConfirmationSource: z.enum(["upload_form", "api_json"]).nullable().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime()
 });
@@ -26,7 +28,8 @@ export type ConversionJob = z.infer<typeof ConversionJobSchema>;
 
 export const CreateConversionRequestSchema = z.object({
   inputFileId: z.string().min(1).optional(),
-  tuning: z.enum(TUNINGS).default("GCFB")
+  tuning: z.enum(TUNINGS).default("GCFB"),
+  rightsConfirmed: z.boolean().optional()
 });
 export type CreateConversionRequest = z.infer<typeof CreateConversionRequestSchema>;
 

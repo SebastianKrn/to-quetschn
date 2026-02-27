@@ -7,13 +7,20 @@ import {
 } from "@grifftab/domain-types";
 import { requireSession, UnauthorizedError, type SessionLike } from "@/lib/auth";
 import { getDomainStore } from "@/lib/convex";
+import { getWebEnv } from "@/lib/env";
 import { getQueueClient } from "@/lib/queue";
 import { createConversionObjectKey, getStorageClient } from "@/lib/storage";
 import { jsonError, jsonOk } from "@/lib/http";
 
 async function parseInput(
   request: Request
-): Promise<{ inputFileId?: string; file?: File; tuning: Tuning }> {
+): Promise<{
+  inputFileId?: string;
+  file?: File;
+  tuning: Tuning;
+  rightsConfirmed: boolean;
+  rightsConfirmationSource: "upload_form" | "api_json";
+}> {
   const contentType = request.headers.get("content-type") ?? "";
 
   if (contentType.includes("multipart/form-data")) {
@@ -21,6 +28,12 @@ async function parseInput(
     const file = formData.get("file");
     const tuningRaw = String(formData.get("tuning") ?? "GCFB");
     const inputFileIdRaw = String(formData.get("inputFileId") ?? "");
+    const rightsConfirmedRaw = String(formData.get("rightsConfirmed") ?? "").trim().toLowerCase();
+    const rightsConfirmed =
+      rightsConfirmedRaw === "true" ||
+      rightsConfirmedRaw === "1" ||
+      rightsConfirmedRaw === "on" ||
+      rightsConfirmedRaw === "yes";
 
     if (!TUNINGS.includes(tuningRaw as Tuning)) {
       throw new Error("Unsupported tuning");
@@ -30,14 +43,18 @@ async function parseInput(
       return {
         file,
         tuning: tuningRaw as Tuning,
-        inputFileId: inputFileIdRaw || undefined
+        inputFileId: inputFileIdRaw || undefined,
+        rightsConfirmed,
+        rightsConfirmationSource: "upload_form"
       };
     }
 
     if (inputFileIdRaw) {
       return {
         inputFileId: inputFileIdRaw,
-        tuning: tuningRaw as Tuning
+        tuning: tuningRaw as Tuning,
+        rightsConfirmed,
+        rightsConfirmationSource: "upload_form"
       };
     }
 
@@ -49,7 +66,9 @@ async function parseInput(
 
   return {
     inputFileId: body.inputFileId,
-    tuning: body.tuning
+    tuning: body.tuning,
+    rightsConfirmed: body.rightsConfirmed ?? false,
+    rightsConfirmationSource: "api_json"
   };
 }
 
@@ -65,7 +84,13 @@ export async function POST(request: Request) {
     return jsonError(401, "Not authenticated");
   }
 
-  let parsed: { inputFileId?: string; file?: File; tuning: Tuning };
+  let parsed: {
+    inputFileId?: string;
+    file?: File;
+    tuning: Tuning;
+    rightsConfirmed: boolean;
+    rightsConfirmationSource: "upload_form" | "api_json";
+  };
   try {
     parsed = await parseInput(request);
   } catch (error) {
@@ -106,11 +131,18 @@ export async function POST(request: Request) {
     return jsonError(400, "inputFileId or file is required");
   }
 
+  const env = getWebEnv();
+  if (env.ENFORCE_UPLOAD_RIGHTS_CONFIRMATION === "true" && !parsed.rightsConfirmed) {
+    return jsonError(400, "Bitte Upload-Rechte bestätigen, bevor die Konvertierung gestartet wird.");
+  }
+
   const created = await getDomainStore().createConversion({
     id,
     inputFileId,
     tuning: parsed.tuning,
-    ownerUserId: session.user.id
+    ownerUserId: session.user.id,
+    rightsConfirmedAt: parsed.rightsConfirmed ? new Date().toISOString() : null,
+    rightsConfirmationSource: parsed.rightsConfirmed ? parsed.rightsConfirmationSource : null
   });
 
   const queueResult = await getQueueClient().enqueueConversion({

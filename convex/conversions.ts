@@ -38,7 +38,11 @@ export const createConversion = mutation({
     id: v.string(),
     inputFileId: v.string(),
     tuning: v.union(v.literal("GCFB"), v.literal("ADGC"), v.literal("BEADG"), v.literal("CFBB")),
-    ownerUserId: v.string()
+    ownerUserId: v.string(),
+    rightsConfirmedAt: v.optional(v.union(v.string(), v.null())),
+    rightsConfirmationSource: v.optional(
+      v.union(v.literal("upload_form"), v.literal("api_json"), v.null())
+    )
   },
   handler: async (ctx, args) => {
     const now = new Date().toISOString();
@@ -59,6 +63,9 @@ export const createConversion = mutation({
       tuning: args.tuning,
       progress: 0,
       errorCode: null,
+      rightsConfirmedAt: args.rightsConfirmedAt ?? existing?.rightsConfirmedAt ?? null,
+      rightsConfirmationSource:
+        args.rightsConfirmationSource ?? existing?.rightsConfirmationSource ?? null,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
       transposeSuggestions: existing?.transposeSuggestions ?? [],
@@ -78,6 +85,8 @@ export const createConversion = mutation({
       tuning: doc.tuning,
       progress: doc.progress,
       errorCode: doc.errorCode,
+      rightsConfirmedAt: doc.rightsConfirmedAt,
+      rightsConfirmationSource: doc.rightsConfirmationSource,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt
     };
@@ -107,6 +116,8 @@ export const getConversion = query({
         tuning: existing.tuning,
         progress: existing.progress,
         errorCode: existing.errorCode,
+        rightsConfirmedAt: existing.rightsConfirmedAt ?? null,
+        rightsConfirmationSource: existing.rightsConfirmationSource ?? null,
         createdAt: existing.createdAt,
         updatedAt: existing.updatedAt
       },
@@ -173,6 +184,8 @@ export const updateConversion = mutation({
         tuning: updated.tuning,
         progress: updated.progress,
         errorCode: updated.errorCode,
+        rightsConfirmedAt: updated.rightsConfirmedAt ?? null,
+        rightsConfirmationSource: updated.rightsConfirmationSource ?? null,
         createdAt: updated.createdAt,
         updatedAt: updated.updatedAt
       },
@@ -224,6 +237,8 @@ export const confirmTranspose = mutation({
         tuning: updated.tuning,
         progress: updated.progress,
         errorCode: updated.errorCode,
+        rightsConfirmedAt: updated.rightsConfirmedAt ?? null,
+        rightsConfirmationSource: updated.rightsConfirmationSource ?? null,
         createdAt: updated.createdAt,
         updatedAt: updated.updatedAt
       },

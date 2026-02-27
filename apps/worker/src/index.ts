@@ -84,7 +84,8 @@ async function main() {
     },
     {
       connection,
-      concurrency: env.WORKER_CONCURRENCY
+      concurrency: env.WORKER_CONCURRENCY,
+      lockDuration: env.WORKER_LOCK_DURATION_MS
     }
   );
 
@@ -123,7 +124,8 @@ async function main() {
     },
     {
       connection,
-      concurrency: env.WORKER_CONCURRENCY
+      concurrency: env.WORKER_CONCURRENCY,
+      lockDuration: env.WORKER_LOCK_DURATION_MS
     }
   );
 

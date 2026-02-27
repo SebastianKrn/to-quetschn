@@ -29,7 +29,7 @@ Status: Upgraded to runtime implementation (Sprint 1 conversion + Sprint 2 expor
 - Docker Compose stack for Dokploy (`web`, `omr-service`, `worker`, `postgres`, `redis`, `minio`)
 - Environment templates for `dev`, `staging`, `prod`
 - Infra docs for secret and environment mapping
-Status: Completed (runtime wiring ready; docker validation pending in environments with Docker CLI)
+Status: Completed (runtime wiring ready; pilot compose/test workflow available)
 
 ### 5. Agent Workflow Optimization
 - Create and mirror 4 custom skills in `.agents/skills` and `.claude/skills`
@@ -164,11 +164,64 @@ Status: Completed (unchanged in Sprint 1)
 - `pnpm mvp:scenario` passes end-to-end in this environment after fixes.
 - quality gates pass (`pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build`).
 
+## Sprint 7 Pilot Readiness Progress (In Progress)
+1. Pilot docker runtime packaging implemented:
+- added service Dockerfiles:
+  - `apps/web/Dockerfile`
+  - `apps/worker/Dockerfile`
+  - `apps/omr-service/Dockerfile` (Node + Java 21 + Audiveris package install)
+- added pilot compose stack:
+  - `docker-compose.pilot.yml`
+- added pilot orchestration commands/scripts:
+  - `pnpm pilot:up`
+  - `pnpm pilot:down`
+  - `pnpm pilot:smoke`
+2. Pilot auth and legal acknowledgement implemented:
+- added `/login` and `/register` pages for BetterAuth email/password flow
+- dashboard now hides dev-user controls outside `development|test`
+- conversion ingestion now supports additive `rightsConfirmed` and pilot enforcement:
+  - `ENFORCE_UPLOAD_RIGHTS_CONFIRMATION=true` blocks unconfirmed uploads
+- conversion runtime metadata now persists:
+  - `rightsConfirmedAt`
+  - `rightsConfirmationSource`
+3. OMR diagnostics hardening implemented:
+- `/health` now returns additive Audiveris capability fields:
+  - `audiverisAvailable`
+  - `audiverisVersion`
+4. Scenario and evidence tooling expanded:
+- `pnpm mvp:scenario` now supports:
+  - `--mode replay|audiveris`
+  - `--auth dev-header|session`
+  - `--fixture <pdf>`
+  - `--summary <path>`
+- added audiveris batch scenario command:
+  - `pnpm pilot:scenario:audiveris`
+- added evidence bundling:
+  - `pnpm pilot:evidence`
+5. Benchmark/replay expansion implemented:
+- benchmark manifest expanded from 12 to 20 licensed fixtures (`sample-licensed-013..020`)
+- replay manifest expanded for Sprint 7 fixture set
+- added fixture helper command:
+  - `pnpm fixtures:register --pdf <path> --normalized <path> --id <id> --license licensed`
+6. CI/workflow updates implemented:
+- replay scenario on main CI is now required (non-advisory)
+- added dedicated audiveris scenario workflow (`.github/workflows/audiveris-scenario.yml`)
+- compose validation workflow now includes pilot compose config validation
+7. Architecture/docs updates implemented:
+- added ADR-0009 (`docs/architecture/ADR-0009-pilot-local-docker-runtime.md`)
+- added pilot QA runbook (`docs/qa/pilot-local-docker.md`)
+- updated QA acceptance and benchmark docs for Sprint 7 criteria
+8. Current validation outcome (latest run):
+- `pilot:smoke` failed in session-auth login step.
+- OMR health in pilot smoke reported `audiverisAvailable=false`.
+- `pilot:scenario:audiveris` summary currently reports `passed=0 failed=3`.
+
 ## Next Sprint Focus
-1. Execute Docker smoke runbook successfully in a Docker-enabled host and archive passing output evidence.
-2. Continue legal/licensing workflow and reviewer assignment for broader dataset readiness.
-3. Expand replay fixture manifest coverage beyond baseline entries for additional local deterministic datasets.
-4. Scope practice-mode audio/MIDI follow-up beyond v2 loop+shortcut capabilities after MVP local GA criteria are met.
+1. Fix pilot session-auth smoke path and re-run `pnpm pilot:smoke` until green.
+2. Fix Audiveris runtime/container availability and re-run `pnpm pilot:scenario:audiveris` until green.
+3. Re-run full Sprint 7 gate sequence and archive passing evidence artifacts (`benchmark`, replay scenario, audiveris scenarios, pilot smoke, pilot evidence bundle).
+4. Continue legal/licensing workflow and reviewer assignment for broader repertoire readiness.
+5. Scope practice-mode audio/MIDI follow-up beyond MVP pilot gate.
 
 ## Sprint 2 Micro-Sprint Progress (Implemented)
 1. Added export contracts (`ExportJob`, `ExportQueuePayload`) and export queue topics.

@@ -16,6 +16,10 @@ export default defineSchema({
     tuning: v.union(v.literal("GCFB"), v.literal("ADGC"), v.literal("BEADG"), v.literal("CFBB")),
     progress: v.number(),
     errorCode: v.union(v.string(), v.null()),
+    rightsConfirmedAt: v.optional(v.union(v.string(), v.null())),
+    rightsConfirmationSource: v.optional(
+      v.union(v.literal("upload_form"), v.literal("api_json"), v.null())
+    ),
     createdAt: v.string(),
     updatedAt: v.string(),
     transposeSuggestions: v.optional(

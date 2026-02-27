@@ -3,6 +3,8 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import type { OmrProvider } from "@grifftab/domain-types";
 import { OmrErrorSchema, OmrScoreSchema } from "@grifftab/domain-types";
 import {
@@ -14,6 +16,7 @@ import { getOmrEnv } from "./env.js";
 
 const env = getOmrEnv();
 const app = express();
+const execFileAsync = promisify(execFile);
 
 app.use(express.json({ limit: "10mb" }));
 
@@ -31,6 +34,43 @@ function createProvider(): OmrProvider {
 }
 
 const provider = createProvider();
+
+async function detectAudiverisCapability(binPath: string): Promise<{
+  audiverisAvailable: boolean;
+  audiverisVersion?: string;
+}> {
+  try {
+    const { stdout, stderr } = await execFileAsync(binPath, ["-help"], {
+      timeout: 5000,
+      maxBuffer: 1024 * 1024
+    });
+    const lines = `${stdout ?? ""}\n${stderr ?? ""}`
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+    let version: string | undefined;
+    const envVersionLine = lines.find((line) => /^-\s*Audiveris:/i.test(line));
+    if (envVersionLine) {
+      version = envVersionLine.split(":").slice(1).join(":").trim();
+    } else {
+      const versionLabelIndex = lines.findIndex((line) => /^Audiveris Version:/i.test(line));
+      if (versionLabelIndex >= 0 && versionLabelIndex + 1 < lines.length) {
+        version = lines[versionLabelIndex + 1];
+      }
+    }
+
+    return {
+      audiverisAvailable: true,
+      audiverisVersion: version
+    };
+  } catch {
+    return {
+      audiverisAvailable: false
+    };
+  }
+}
+
+const audiverisCapabilityPromise = detectAudiverisCapability(env.AUDIVERIS_BIN);
 
 async function materializePdfSource(source: string): Promise<{
   sourceFilePath: string;
@@ -60,13 +100,16 @@ async function materializePdfSource(source: string): Promise<{
   };
 }
 
-app.get("/health", (_req, res) => {
+app.get("/health", async (_req, res) => {
+  const capability = await audiverisCapabilityPromise;
   res.json({
     ok: true,
     service: "omr-service",
     provider: env.OMR_MODE === "replay" ? "replay" : env.OMR_PROVIDER,
     mode: env.OMR_MODE,
-    timeoutMs: env.AUDIVERIS_TIMEOUT_MS
+    timeoutMs: env.AUDIVERIS_TIMEOUT_MS,
+    audiverisAvailable: capability.audiverisAvailable,
+    audiverisVersion: capability.audiverisVersion
   });
 });
 

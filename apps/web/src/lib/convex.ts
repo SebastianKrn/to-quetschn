@@ -29,6 +29,8 @@ export interface DomainStore {
     inputFileId: string;
     tuning: Tuning;
     ownerUserId: string;
+    rightsConfirmedAt?: string | null;
+    rightsConfirmationSource?: "upload_form" | "api_json" | null;
   }): Promise<ConversionJob>;
   getConversion(id: string, ownerUserId: string): Promise<ConversionRuntime | null>;
   updateConversion(input: {
@@ -105,7 +107,8 @@ const memory = {
 };
 
 const ENABLE_LOCAL_DOMAIN_STATE =
-  process.env.NODE_ENV === "development" && process.env.CONVEX_DEPLOYMENT === "local-dev";
+  process.env.CONVEX_DEPLOYMENT === "local-dev" &&
+  (process.env.NODE_ENV === "development" || process.env.PILOT_MODE === "true");
 const LOCAL_DOMAIN_STATE_PATH =
   process.env.LOCAL_DOMAIN_STORE_PATH ?? path.join(process.cwd(), ".artifacts/mvp/local-domain-store.json");
 
@@ -274,6 +277,8 @@ class MemoryDomainStore implements DomainStore {
     inputFileId: string;
     tuning: Tuning;
     ownerUserId: string;
+    rightsConfirmedAt?: string | null;
+    rightsConfirmationSource?: "upload_form" | "api_json" | null;
   }): Promise<ConversionJob> {
     this.syncFromDisk();
     const now = nowIso();
@@ -284,6 +289,8 @@ class MemoryDomainStore implements DomainStore {
       tuning: input.tuning,
       progress: 0,
       errorCode: null,
+      rightsConfirmedAt: input.rightsConfirmedAt ?? null,
+      rightsConfirmationSource: input.rightsConfirmationSource ?? null,
       createdAt: now,
       updatedAt: now
     });
@@ -613,6 +620,8 @@ class ConvexDomainStore extends MemoryDomainStore {
     inputFileId: string;
     tuning: Tuning;
     ownerUserId: string;
+    rightsConfirmedAt?: string | null;
+    rightsConfirmationSource?: "upload_form" | "api_json" | null;
   }): Promise<ConversionJob> {
     return this.withFallback({
       operationName: "createConversion",
@@ -812,7 +821,11 @@ class ConvexDomainStore extends MemoryDomainStore {
 const env = getWebEnv();
 
 function allowConvexFallback(input: WebEnv): boolean {
-  return input.NODE_ENV === "development" && input.CONVEX_DEPLOYMENT === "local-dev";
+  if (input.CONVEX_DEPLOYMENT !== "local-dev") {
+    return false;
+  }
+
+  return input.NODE_ENV === "development" || input.PILOT_MODE === "true";
 }
 
 function createDefaultStore(): DomainStore {

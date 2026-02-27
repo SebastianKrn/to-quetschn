@@ -1,7 +1,7 @@
 # GriffTab Project Specification (Normalized)
 
 Last updated: 2026-02-27
-Status: Sprint 6 local MVP resilience hardening completed (infra bucket bootstrap fix + shared local fallback domain state + storage guardrails); Docker smoke success evidence still pending on Docker-enabled host
+Status: Sprint 7 pilot-readiness implementation complete in scope; pilot validation/evidence stabilization in progress
 
 ## Implementation Status (Current)
 - Foundation scaffold remains verified and intact.
@@ -22,11 +22,14 @@ Status: Sprint 6 local MVP resilience hardening completed (infra bucket bootstra
 - OMR normalization pipeline now supports JSON, delimited fallback, and MusicXML payload variants.
 - Benchmark regression harness is implemented with licensed-manifest filtering and strict CI execution.
 - Benchmark dataset now includes 12 executable licensed fixtures across JSON, MusicXML, and delimited parser paths with strict thresholds.
+- Benchmark dataset is expanded to 20 executable licensed fixtures for Sprint 7 pilot gating.
 - Practice mode v2 is implemented at `/practice/[arrangementId]` with authenticated load, SVG rendering, tempo control, loop range controls, deterministic loop playback, and keyboard shortcuts.
 - OMR service supports hybrid provider selection via `OMR_MODE`:
   - `replay` mode for deterministic local runs using checksum manifest fixtures
   - `audiveris` mode for real extraction parity
 - Web home page now provides German-first MVP conversion dashboard flow (upload, conversion status polling, transpose confirm, practice entry, export polling).
+- Web pilot auth UX now includes dedicated `/login` and `/register` pages; non-dev dashboard access is session-gated.
+- Dashboard now supports upload-rights acknowledgement and conversion request enforcement via `ENFORCE_UPLOAD_RIGHTS_CONFIRMATION=true`.
 - Arrangement correction flow supports owner-scoped single-token updates via `PATCH /api/arrangements/:id`.
 - Practice UI supports token selection from SVG and row/button/direction mutation with save feedback.
 - Local MVP orchestration scripts are available for deterministic smoke validation:
@@ -38,6 +41,22 @@ Status: Sprint 6 local MVP resilience hardening completed (infra bucket bootstra
 - Local `development + CONVEX_DEPLOYMENT=local-dev` runs now share fallback domain state between web and worker via `LOCAL_DOMAIN_STORE_PATH` for deterministic conversion/export polling without live Convex.
 - Storage clients now auto-create missing buckets in local runtimes and conversion upload returns explicit `503` messaging when object storage writes fail.
 - Playwright MVP smoke is implemented with scenario artifact output `.artifacts/mvp-scenario-summary.json`.
+- MVP scenario script supports explicit mode/auth switches:
+  - `pnpm mvp:scenario --mode replay|audiveris`
+  - `pnpm mvp:scenario --auth dev-header|session`
+- Pilot docker workflow and commands are implemented:
+  - `pnpm pilot:up`
+  - `pnpm pilot:smoke`
+  - `pnpm pilot:down`
+  - `pnpm pilot:scenario:audiveris`
+  - `pnpm pilot:evidence`
+- OMR health route now exposes additive Audiveris capability fields:
+  - `audiverisAvailable`
+  - `audiverisVersion`
+- Latest pilot evidence run is not yet release-ready:
+  - session-auth pilot smoke failed at login step
+  - OMR health reported `audiverisAvailable=false` in the same run
+  - audiveris batch scenario summary is failing
 - Single-session branch workflow is now the active protocol (dual-session worktree playbook retired).
 - Docker smoke runbook evidence is documented for blocked hosts and requires successful execution in a Docker-enabled environment for release proof.
 - OMR errors are typed and normalized using taxonomy:
@@ -98,6 +117,7 @@ Excluded in this foundation stage:
 
 ## API Surface
 - `POST /api/conversions` (multipart PDF or JSON `inputFileId`)
+- `POST /api/conversions` supports additive `rightsConfirmed` request field and pilot-mode enforcement.
 - `GET /api/conversions/:id`
 - `POST /api/conversions/:id/confirm-transpose`
 - `GET /api/arrangements/:id`
@@ -112,6 +132,8 @@ Excluded in this foundation stage:
 - Legal and licensing workflow for copyrighted songs
 - Final reference dataset curation (still synthetic-heavy despite broader fixtures)
 - Named music expert reviewer assignment
-- Production compose validation must still be executed successfully in Docker-enabled environment (current host remains blocked)
-- Replay manifest breadth remains limited relative to benchmark fixture set and should be expanded in follow-up
+- Pilot gate stabilization remains open:
+  - fix session-auth smoke path and rerun `pnpm pilot:smoke`
+  - fix Audiveris runtime availability and rerun `pnpm pilot:scenario:audiveris`
+  - regenerate passing evidence bundle via `pnpm pilot:evidence`
 - Practice mode audio/MIDI follow-up remains out of current sprint scope

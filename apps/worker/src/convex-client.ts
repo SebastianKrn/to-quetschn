@@ -19,6 +19,8 @@ interface StoredConversion {
     tuning: "GCFB" | "ADGC" | "BEADG" | "CFBB";
     progress: number;
     errorCode: string | null;
+    rightsConfirmedAt?: string | null;
+    rightsConfirmationSource?: "upload_form" | "api_json" | null;
     createdAt: string;
     updatedAt: string;
   };
@@ -66,7 +68,8 @@ export class ConvexDomainClient implements DomainClient {
   constructor(url: string, adminKey?: string) {
     this.client = new ConvexHttpClient(url);
     this.localFallbackEnabled =
-      process.env.NODE_ENV === "development" && process.env.CONVEX_DEPLOYMENT === "local-dev";
+      process.env.CONVEX_DEPLOYMENT === "local-dev" &&
+      (process.env.NODE_ENV === "development" || process.env.PILOT_MODE === "true");
     this.localStatePath =
       process.env.LOCAL_DOMAIN_STORE_PATH ?? path.join(process.cwd(), ".artifacts/mvp/local-domain-store.json");
 

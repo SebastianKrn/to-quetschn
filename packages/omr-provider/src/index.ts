@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
+import AdmZip from "adm-zip";
 import type { OmrProvider, OmrScore } from "@grifftab/domain-types";
 import { createOmrError, OmrProviderError } from "./errors.js";
 import { normalizeAudiverisOutput } from "./normalize.js";
@@ -23,7 +24,11 @@ function mapExecError(
   const err = error as NodeJS.ErrnoException & {
     killed?: boolean;
     signal?: NodeJS.Signals;
+    stdout?: string | Buffer;
+    stderr?: string | Buffer;
   };
+  const stderr = typeof err.stderr === "string" ? err.stderr : err.stderr?.toString("utf8");
+  const stdout = typeof err.stdout === "string" ? err.stdout : err.stdout?.toString("utf8");
 
   if (err.code === "ENOENT") {
     return createOmrError({
@@ -49,7 +54,9 @@ function mapExecError(
     retryable: true,
     details: {
       sourceFilePath: input.sourceFilePath,
-      error: err.message
+      error: err.message,
+      stderr: (stderr ?? "").slice(0, 4000),
+      stdout: (stdout ?? "").slice(0, 4000)
     },
     cause: error
   });
@@ -74,10 +81,41 @@ async function readFirstExistingAudiverisOutput(sourceFilePath: string): Promise
   artifactPath: string;
   content: string;
 } | null> {
+  const readArtifactContent = async (artifactPath: string): Promise<string> => {
+    if (!artifactPath.toLowerCase().endsWith(".mxl")) {
+      return fs.readFile(artifactPath, "utf8");
+    }
+
+    const zipBuffer = await fs.readFile(artifactPath);
+    const zip = new AdmZip(zipBuffer);
+    const entry = zip.getEntries().find((candidate) => {
+      if (candidate.isDirectory) {
+        return false;
+      }
+
+      const lowerName = candidate.entryName.toLowerCase();
+      return lowerName.endsWith(".musicxml") || lowerName.endsWith(".xml");
+    });
+
+    if (!entry) {
+      throw createOmrError({
+        code: "OMR_PARSE_FAILED",
+        message: "Audiveris .mxl export does not contain a MusicXML entry",
+        retryable: false,
+        details: {
+          sourceFilePath,
+          artifactPath
+        }
+      });
+    }
+
+    return zip.readAsText(entry, "utf8");
+  };
+
   const candidates = candidateAudiverisOutputs(sourceFilePath);
   for (const artifactPath of candidates) {
     try {
-      const content = await fs.readFile(artifactPath, "utf8");
+      const content = await readArtifactContent(artifactPath);
       if (content.trim().length > 0) {
         return {
           artifactPath,
@@ -85,6 +123,10 @@ async function readFirstExistingAudiverisOutput(sourceFilePath: string): Promise
         };
       }
     } catch (error) {
+      if (error instanceof OmrProviderError) {
+        throw error;
+      }
+
       const nodeError = error as NodeJS.ErrnoException;
       if (nodeError.code === "ENOENT") {
         continue;

@@ -2,7 +2,12 @@ import { ConfirmTransposeRequestSchema } from "@grifftab/domain-types";
 import { requireSession, UnauthorizedError } from "@/lib/auth";
 import { getDomainStore } from "@/lib/convex";
 import { getQueueClient } from "@/lib/queue";
+import { getStorageClient } from "@/lib/storage";
 import { jsonError, jsonOk } from "@/lib/http";
+
+function isHttpUrl(value: string): boolean {
+  return value.startsWith("http://") || value.startsWith("https://");
+}
 
 export async function POST(request: Request, context: { params: { id: string } }) {
   let sessionUserId: string;
@@ -34,9 +39,28 @@ export async function POST(request: Request, context: { params: { id: string } }
     return jsonError(404, "Conversion not found");
   }
 
+  let sourceDownloadUrl: string | undefined;
+  if (isHttpUrl(conversion.job.inputFileId)) {
+    sourceDownloadUrl = conversion.job.inputFileId;
+  } else {
+    try {
+      sourceDownloadUrl = (
+        await getStorageClient().getSignedUrl({
+          key: conversion.job.inputFileId,
+          expiresInSeconds: 15 * 60
+        })
+      ).url;
+    } catch (error) {
+      return jsonError(503, "Quelle für Transposition konnte nicht geladen werden.", {
+        error: error instanceof Error ? error.message : "unknown"
+      });
+    }
+  }
+
   await getQueueClient().enqueueConversion({
     conversionId: conversion.job.id,
     sourceFileId: conversion.job.inputFileId,
+    sourceDownloadUrl,
     tuning: conversion.job.tuning,
     ownerUserId: sessionUserId,
     correlationId: `transpose-${conversion.job.id}-${Date.now()}`,

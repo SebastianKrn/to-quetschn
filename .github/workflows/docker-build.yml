@@ -17,3 +17,6 @@ jobs:
 
       - name: Validate dev compose
         run: docker compose -f docker-compose.dev.yml config >/dev/null
+
+      - name: Validate pilot compose
+        run: docker compose -f docker-compose.pilot.yml config >/dev/null

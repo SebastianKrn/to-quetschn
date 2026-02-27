@@ -1,15 +1,105 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "entries": [
     {
       "checksumSha256": "b66f256a91bcd4fb7fbdc8cb9b67910c4792bb2c4a1f4d26e4ba41fc7bef7008",
       "normalizedInput": "./normalized/sample-licensed-001.musicxml",
-      "label": "licensed-set-a"
+      "label": "sample-licensed-001"
+    },
+    {
+      "checksumSha256": "b66f256a91bcd4fb7fbdc8cb9b67910c4792bb2c4a1f4d26e4ba41fc7bef7008",
+      "normalizedInput": "./normalized/sample-licensed-002.json",
+      "label": "sample-licensed-002"
+    },
+    {
+      "checksumSha256": "b66f256a91bcd4fb7fbdc8cb9b67910c4792bb2c4a1f4d26e4ba41fc7bef7008",
+      "normalizedInput": "./normalized/sample-licensed-003.json",
+      "label": "sample-licensed-003"
+    },
+    {
+      "checksumSha256": "b66f256a91bcd4fb7fbdc8cb9b67910c4792bb2c4a1f4d26e4ba41fc7bef7008",
+      "normalizedInput": "./normalized/sample-licensed-004.json",
+      "label": "sample-licensed-004"
+    },
+    {
+      "checksumSha256": "b66f256a91bcd4fb7fbdc8cb9b67910c4792bb2c4a1f4d26e4ba41fc7bef7008",
+      "normalizedInput": "./normalized/sample-licensed-005.txt",
+      "label": "sample-licensed-005"
     },
     {
       "checksumSha256": "ba9fbe0611b5d2e971ff3f88bc1335bcaa44eb600c98efeb5511f8cc9087705c",
       "normalizedInput": "./normalized/sample-licensed-006.json",
-      "label": "licensed-set-b"
+      "label": "sample-licensed-006"
+    },
+    {
+      "checksumSha256": "ba9fbe0611b5d2e971ff3f88bc1335bcaa44eb600c98efeb5511f8cc9087705c",
+      "normalizedInput": "./normalized/sample-licensed-007.musicxml",
+      "label": "sample-licensed-007"
+    },
+    {
+      "checksumSha256": "ba9fbe0611b5d2e971ff3f88bc1335bcaa44eb600c98efeb5511f8cc9087705c",
+      "normalizedInput": "./normalized/sample-licensed-008.txt",
+      "label": "sample-licensed-008"
+    },
+    {
+      "checksumSha256": "b66f256a91bcd4fb7fbdc8cb9b67910c4792bb2c4a1f4d26e4ba41fc7bef7008",
+      "normalizedInput": "./normalized/sample-licensed-009.json",
+      "label": "sample-licensed-009"
+    },
+    {
+      "checksumSha256": "ba9fbe0611b5d2e971ff3f88bc1335bcaa44eb600c98efeb5511f8cc9087705c",
+      "normalizedInput": "./normalized/sample-licensed-010.musicxml",
+      "label": "sample-licensed-010"
+    },
+    {
+      "checksumSha256": "ba9fbe0611b5d2e971ff3f88bc1335bcaa44eb600c98efeb5511f8cc9087705c",
+      "normalizedInput": "./normalized/sample-licensed-011.txt",
+      "label": "sample-licensed-011"
+    },
+    {
+      "checksumSha256": "ba9fbe0611b5d2e971ff3f88bc1335bcaa44eb600c98efeb5511f8cc9087705c",
+      "normalizedInput": "./normalized/sample-licensed-012.json",
+      "label": "sample-licensed-012"
+    },
+    {
+      "checksumSha256": "de6ce7310d2eecc38449e4400fbd687b29af2469d0b23c284c48e18471120636",
+      "normalizedInput": "./normalized/sample-licensed-013.musicxml",
+      "label": "sample-licensed-013"
+    },
+    {
+      "checksumSha256": "4fde3e555a3cd540b1871b116c1b487162148e2432acb46641ad4d3525a374bb",
+      "normalizedInput": "./normalized/sample-licensed-014.json",
+      "label": "sample-licensed-014"
+    },
+    {
+      "checksumSha256": "6f37f71a62ac0b26f3ad8eec6db4c6246535b1f8de66dfdab47abf77f35f0e2c",
+      "normalizedInput": "./normalized/sample-licensed-015.json",
+      "label": "sample-licensed-015"
+    },
+    {
+      "checksumSha256": "155c7410d4974389724c795159b0e4ccfbe888f956b9d4544639612a84efefe6",
+      "normalizedInput": "./normalized/sample-licensed-016.json",
+      "label": "sample-licensed-016"
+    },
+    {
+      "checksumSha256": "024dc5291fcd95f0bd03f31292cb30b6ba075e4e4fb4e1213b58b1124acd82bd",
+      "normalizedInput": "./normalized/sample-licensed-017.txt",
+      "label": "sample-licensed-017"
+    },
+    {
+      "checksumSha256": "e6e77cb765b737f571ecf41489c803005e94b00e61aaa0426b38bb7c4a23c787",
+      "normalizedInput": "./normalized/sample-licensed-018.musicxml",
+      "label": "sample-licensed-018"
+    },
+    {
+      "checksumSha256": "8756fdce515c720998cf164992e2103809a51e980e2b84c0620e2d5e0721d22b",
+      "normalizedInput": "./normalized/sample-licensed-019.txt",
+      "label": "sample-licensed-019"
+    },
+    {
+      "checksumSha256": "fdf92cbbcf532630a084afa36f657802264bf60bbfe603b71225767ae472f470",
+      "normalizedInput": "./normalized/sample-licensed-020.json",
+      "label": "sample-licensed-020"
     }
   ]
 }
