@@ -64,10 +64,14 @@ pnpm mvp:down
 ## 6. Quick troubleshoot
 - Docker missing/unavailable:
   - Start Docker Desktop/Engine and retry `pnpm mvp:infra:up`
+- MinIO bootstrap error (`mc: 'sh' is not a recognized command`):
+  - Pull latest branch changes and rerun `pnpm mvp:infra:up`
 - Browser missing for e2e:
   - run `pnpm --filter @grifftab/web exec playwright install chromium`
 - Replay fixture mismatch:
   - use `benchmarks/pdfs/sample-licensed-001.pdf` for deterministic smoke
+- Conversion status stuck on `queued`:
+  - restart via `pnpm mvp:down && pnpm mvp:apps:up` to refresh shared local domain state
 
 ## 7. Quality checks before next commit
 ```bash

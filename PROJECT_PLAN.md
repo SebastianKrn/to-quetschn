@@ -1,6 +1,6 @@
 # GriffTab Execution Plan (Phase 1+2+3 Foundation)
 
-Last updated: 2026-02-26
+Last updated: 2026-02-27
 
 ## Objective
 Establish a production-ready foundation where coding agents can implement features quickly and safely with minimal ambiguity.
@@ -147,6 +147,22 @@ Status: Completed (unchanged in Sprint 1)
 5. QA docs and runbooks updated:
 - added `docs/qa/mvp-local-smoke.md`
 - updated acceptance criteria and benchmark harness docs for Sprint 6 behavior
+
+## Sprint 6 QA/Resilience Hardening (2026-02-27)
+1. Local MVP infra fix completed:
+- fixed `scripts/mvp/infra-up.sh` MinIO bootstrap invocation by setting explicit `/bin/sh` entrypoint for `minio/mc`.
+2. Local runtime resilience completed:
+- web/worker S3 clients now auto-recover missing buckets in `development|test` by probing/creating bucket before write and retrying on missing-bucket errors.
+- conversion upload route now fails with deterministic `503` response when object storage write fails.
+3. Shared local fallback state completed:
+- web local domain fallback now persists to shared file state (`LOCAL_DOMAIN_STORE_PATH`) in local-dev mode.
+- worker Convex client now falls back to the same local file state for conversion/export mutations/queries when Convex is unavailable in local-dev mode.
+4. Local MVP script hardening completed:
+- `mvp:apps:up` now exports/reset `LOCAL_DOMAIN_STORE_PATH` state.
+- `mvp:down` now removes local fallback state artifact.
+5. Verification evidence:
+- `pnpm mvp:scenario` passes end-to-end in this environment after fixes.
+- quality gates pass (`pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build`).
 
 ## Next Sprint Focus
 1. Execute Docker smoke runbook successfully in a Docker-enabled host and archive passing output evidence.

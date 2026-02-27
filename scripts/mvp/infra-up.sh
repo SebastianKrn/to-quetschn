@@ -21,7 +21,8 @@ S3_SECRET_KEY="${S3_SECRET_ACCESS_KEY:-minioadmin}"
 log "Ensuring MinIO bucket exists: $S3_BUCKET_NAME"
 docker run --rm \
   --network "${COMPOSE_PROJECT}_default" \
+  --entrypoint /bin/sh \
   minio/mc \
-  sh -c "mc alias set local http://minio:9000 '${S3_ACCESS_KEY}' '${S3_SECRET_KEY}' >/dev/null && mc mb --ignore-existing local/${S3_BUCKET_NAME} >/dev/null"
+  -ec "mc alias set local http://minio:9000 '${S3_ACCESS_KEY}' '${S3_SECRET_KEY}' >/dev/null && mc mb --ignore-existing local/${S3_BUCKET_NAME} >/dev/null"
 
 log "Infra is ready"

@@ -23,4 +23,6 @@ if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
   docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" down --remove-orphans >/dev/null 2>&1 || true
 fi
 
+rm -f "$LOCAL_DOMAIN_STATE_FILE"
+
 log "MVP teardown complete"

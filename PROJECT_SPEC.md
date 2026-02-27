@@ -1,7 +1,7 @@
 # GriffTab Project Specification (Normalized)
 
-Last updated: 2026-02-26
-Status: Sprint 6 local MVP scenario automation + strict benchmark CI gate implemented (Docker smoke success evidence still pending on Docker-enabled host)
+Last updated: 2026-02-27
+Status: Sprint 6 local MVP resilience hardening completed (infra bucket bootstrap fix + shared local fallback domain state + storage guardrails); Docker smoke success evidence still pending on Docker-enabled host
 
 ## Implementation Status (Current)
 - Foundation scaffold remains verified and intact.
@@ -34,6 +34,9 @@ Status: Sprint 6 local MVP scenario automation + strict benchmark CI gate implem
   - `pnpm mvp:apps:up`
   - `pnpm mvp:scenario`
   - `pnpm mvp:down`
+- Local MVP infra now hardens MinIO bucket bootstrap (`minio/mc` entrypoint fix), preventing `mc: sh is not a recognized command` failures.
+- Local `development + CONVEX_DEPLOYMENT=local-dev` runs now share fallback domain state between web and worker via `LOCAL_DOMAIN_STORE_PATH` for deterministic conversion/export polling without live Convex.
+- Storage clients now auto-create missing buckets in local runtimes and conversion upload returns explicit `503` messaging when object storage writes fail.
 - Playwright MVP smoke is implemented with scenario artifact output `.artifacts/mvp-scenario-summary.json`.
 - Single-session branch workflow is now the active protocol (dual-session worktree playbook retired).
 - Docker smoke runbook evidence is documented for blocked hosts and requires successful execution in a Docker-enabled environment for release proof.

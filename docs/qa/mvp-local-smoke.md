@@ -17,6 +17,7 @@ Validate the local MVP workflow end-to-end:
 The local smoke flow uses:
 - `.env.dev.example`
 - `OMR_MODE=replay` (forced by MVP scripts)
+- `LOCAL_DOMAIN_STORE_PATH=.artifacts/mvp/local-domain-store.json` (set by `mvp:apps:up` for local shared fallback state)
 - fixture: `benchmarks/pdfs/sample-licensed-001.pdf`
 - dev auth header via `x-dev-user-id` (development/test only)
 
@@ -57,9 +58,13 @@ pnpm mvp:down
   - Install Docker Desktop/Engine and ensure `docker` is on `PATH`.
 - `Docker daemon is not reachable`:
   - Start Docker daemon and retry.
+- `mc: <ERROR> 'sh' is not a recognized command` during `mvp:infra:up`:
+  - Update to the latest branch revision; bucket bootstrap now sets MinIO entrypoint explicitly.
 - Playwright browser missing:
   - Run `pnpm --filter @grifftab/web exec playwright install chromium`.
 - Conversion fails with replay fixture error:
   - Ensure `OMR_MODE=replay` and fixture is `benchmarks/pdfs/sample-licensed-001.pdf`.
 - Export fails due bucket missing:
   - Re-run `pnpm mvp:infra:up` (bucket creation is part of the script).
+- Conversion polling stays `queued` in local-only runs:
+  - Ensure `pnpm mvp:apps:up` was started from this branch so web+worker share `LOCAL_DOMAIN_STORE_PATH`.

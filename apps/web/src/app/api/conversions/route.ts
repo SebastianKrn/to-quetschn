@@ -82,18 +82,24 @@ export async function POST(request: Request) {
   if (!inputFileId && parsed.file) {
     const extension = parsed.file.name.toLowerCase().endsWith(".pdf") ? "pdf" : "bin";
     const objectKey = createConversionObjectKey({ conversionId: id, extension });
+    try {
+      const storageClient = getStorageClient();
+      await storageClient.putObject({
+        key: objectKey,
+        body: Buffer.from(await parsed.file.arrayBuffer()),
+        contentType: parsed.file.type || "application/pdf"
+      });
 
-    await getStorageClient().putObject({
-      key: objectKey,
-      body: Buffer.from(await parsed.file.arrayBuffer()),
-      contentType: parsed.file.type || "application/pdf"
-    });
-
-    inputFileId = objectKey;
-    sourceDownloadUrl = (await getStorageClient().getSignedUrl({
-      key: objectKey,
-      expiresInSeconds: 15 * 60
-    })).url;
+      inputFileId = objectKey;
+      sourceDownloadUrl = (await storageClient.getSignedUrl({
+        key: objectKey,
+        expiresInSeconds: 15 * 60
+      })).url;
+    } catch (error) {
+      return jsonError(503, "Datei konnte nicht im Objektspeicher abgelegt werden.", {
+        error: error instanceof Error ? error.message : "unknown"
+      });
+    }
   }
 
   if (!inputFileId) {

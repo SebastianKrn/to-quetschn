@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ENV_FILE="$ROOT_DIR/.env.dev.example"
 ARTIFACT_DIR="$ROOT_DIR/.artifacts/mvp"
 PID_FILE="$ARTIFACT_DIR/apps.pids"
+LOCAL_DOMAIN_STATE_FILE="$ARTIFACT_DIR/local-domain-store.json"
 COMPOSE_FILE="$ROOT_DIR/docker-compose.dev.yml"
 COMPOSE_PROJECT="grifftab-mvp"
 

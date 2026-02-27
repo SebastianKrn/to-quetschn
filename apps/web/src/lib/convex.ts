@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { ConvexHttpClient } from "convex/browser";
 import {
   ArrangementSchema,
@@ -88,12 +90,68 @@ interface StoredExport {
   correlationId: string;
 }
 
+interface LocalDomainStateSnapshot {
+  conversions: Record<string, StoredConversion>;
+  arrangements: Record<string, StoredArrangement>;
+  exportsByArrangement: Record<string, StoredExport>;
+  exportHistoryByArrangement: Record<string, StoredExport[]>;
+}
+
 const memory = {
   conversions: new Map<string, StoredConversion>(),
   arrangements: new Map<string, StoredArrangement>(),
   exportsByArrangement: new Map<string, StoredExport>(),
   exportHistoryByArrangement: new Map<string, StoredExport[]>()
 };
+
+const ENABLE_LOCAL_DOMAIN_STATE =
+  process.env.NODE_ENV === "development" && process.env.CONVEX_DEPLOYMENT === "local-dev";
+const LOCAL_DOMAIN_STATE_PATH =
+  process.env.LOCAL_DOMAIN_STORE_PATH ?? path.join(process.cwd(), ".artifacts/mvp/local-domain-store.json");
+
+function loadLocalDomainState() {
+  if (!ENABLE_LOCAL_DOMAIN_STATE) {
+    return;
+  }
+
+  let parsed: LocalDomainStateSnapshot | null = null;
+  try {
+    const raw = fs.readFileSync(LOCAL_DOMAIN_STATE_PATH, "utf8");
+    if (!raw.trim()) {
+      return;
+    }
+    parsed = JSON.parse(raw) as LocalDomainStateSnapshot;
+  } catch (error) {
+    const code = error && typeof error === "object" ? (error as { code?: string }).code : undefined;
+    if (code === "ENOENT") {
+      return;
+    }
+    return;
+  }
+
+  memory.conversions = new Map(Object.entries(parsed.conversions ?? {}));
+  memory.arrangements = new Map(Object.entries(parsed.arrangements ?? {}));
+  memory.exportsByArrangement = new Map(Object.entries(parsed.exportsByArrangement ?? {}));
+  memory.exportHistoryByArrangement = new Map(Object.entries(parsed.exportHistoryByArrangement ?? {}));
+}
+
+function persistLocalDomainState() {
+  if (!ENABLE_LOCAL_DOMAIN_STATE) {
+    return;
+  }
+
+  const snapshot: LocalDomainStateSnapshot = {
+    conversions: Object.fromEntries(memory.conversions.entries()),
+    arrangements: Object.fromEntries(memory.arrangements.entries()),
+    exportsByArrangement: Object.fromEntries(memory.exportsByArrangement.entries()),
+    exportHistoryByArrangement: Object.fromEntries(memory.exportHistoryByArrangement.entries())
+  };
+
+  fs.mkdirSync(path.dirname(LOCAL_DOMAIN_STATE_PATH), { recursive: true });
+  const tempPath = `${LOCAL_DOMAIN_STATE_PATH}.tmp`;
+  fs.writeFileSync(tempPath, JSON.stringify(snapshot, null, 2), "utf8");
+  fs.renameSync(tempPath, LOCAL_DOMAIN_STATE_PATH);
+}
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -112,6 +170,14 @@ function assertOwnerAccess(storedOwner: string | undefined, requestedOwner: stri
 }
 
 class MemoryDomainStore implements DomainStore {
+  private syncFromDisk() {
+    loadLocalDomainState();
+  }
+
+  private syncToDisk() {
+    persistLocalDomainState();
+  }
+
   private claimConversionOwner(input: { id: string; ownerUserId?: string }): StoredConversion | null {
     const conversion = memory.conversions.get(input.id);
     if (!conversion) {
@@ -209,6 +275,7 @@ class MemoryDomainStore implements DomainStore {
     tuning: Tuning;
     ownerUserId: string;
   }): Promise<ConversionJob> {
+    this.syncFromDisk();
     const now = nowIso();
     const job = ConversionJobSchema.parse({
       id: input.id,
@@ -227,11 +294,13 @@ class MemoryDomainStore implements DomainStore {
       transposeSuggestions: [],
       confirmedTranspose: null
     });
+    this.syncToDisk();
 
     return job;
   }
 
   async getConversion(id: string, ownerUserId: string): Promise<ConversionRuntime | null> {
+    this.syncFromDisk();
     const conversion = this.claimConversionOwner({ id, ownerUserId });
     if (!conversion) {
       return null;
@@ -252,6 +321,7 @@ class MemoryDomainStore implements DomainStore {
     transposeSuggestions?: TransposeSuggestion[];
     ownerUserId?: string;
   }): Promise<ConversionRuntime | null> {
+    this.syncFromDisk();
     const existing = this.claimConversionOwner({
       id: input.id,
       ownerUserId: input.ownerUserId
@@ -278,6 +348,7 @@ class MemoryDomainStore implements DomainStore {
     };
 
     memory.conversions.set(input.id, stored);
+    this.syncToDisk();
 
     return {
       job: updated,
@@ -292,6 +363,7 @@ class MemoryDomainStore implements DomainStore {
     targetKey: string;
     ownerUserId: string;
   }): Promise<ConversionRuntime | null> {
+    this.syncFromDisk();
     const existing = this.claimConversionOwner({
       id: input.id,
       ownerUserId: input.ownerUserId
@@ -320,6 +392,7 @@ class MemoryDomainStore implements DomainStore {
     };
 
     memory.conversions.set(input.id, stored);
+    this.syncToDisk();
 
     return {
       job: updated,
@@ -329,6 +402,7 @@ class MemoryDomainStore implements DomainStore {
   }
 
   async getConversionSource(id: string, ownerUserId?: string): Promise<{ inputFileId: string; tuning: Tuning } | null> {
+    this.syncFromDisk();
     const conversion = this.claimConversionOwner({ id, ownerUserId });
     if (!conversion) {
       return null;
@@ -341,6 +415,7 @@ class MemoryDomainStore implements DomainStore {
   }
 
   async upsertArrangement(arrangement: Arrangement, ownerUserId: string): Promise<Arrangement> {
+    this.syncFromDisk();
     const parsed = ArrangementSchema.parse(arrangement);
     const existing = memory.arrangements.get(parsed.id);
 
@@ -352,10 +427,12 @@ class MemoryDomainStore implements DomainStore {
       ownerUserId: existing?.ownerUserId ?? ownerUserId,
       arrangement: parsed
     });
+    this.syncToDisk();
     return parsed;
   }
 
   async getArrangement(id: string, ownerUserId: string): Promise<Arrangement | null> {
+    this.syncFromDisk();
     const claimed = this.claimArrangementOwner({ id, ownerUserId });
     return claimed?.arrangement ?? null;
   }
@@ -368,6 +445,7 @@ class MemoryDomainStore implements DomainStore {
     button: number;
     direction: "push" | "pull";
   }): Promise<Arrangement | null> {
+    this.syncFromDisk();
     const claimed = this.claimArrangementOwner({
       id: input.arrangementId,
       ownerUserId: input.ownerUserId
@@ -405,6 +483,7 @@ class MemoryDomainStore implements DomainStore {
       ownerUserId: claimed.ownerUserId ?? input.ownerUserId,
       arrangement: updated
     });
+    this.syncToDisk();
 
     return updated;
   }
@@ -418,6 +497,7 @@ class MemoryDomainStore implements DomainStore {
     job: ExportJob;
     shouldEnqueue: boolean;
   }> {
+    this.syncFromDisk();
     const existing = this.claimExportOwner({
       arrangementId: input.arrangementId,
       ownerUserId: input.ownerUserId
@@ -458,6 +538,7 @@ class MemoryDomainStore implements DomainStore {
     memory.exportsByArrangement.set(input.arrangementId, stored);
     const history = memory.exportHistoryByArrangement.get(input.arrangementId) ?? [];
     memory.exportHistoryByArrangement.set(input.arrangementId, [stored, ...history]);
+    this.syncToDisk();
 
     return {
       job: exportJob,
@@ -466,11 +547,13 @@ class MemoryDomainStore implements DomainStore {
   }
 
   async getLatestExportByArrangement(arrangementId: string, ownerUserId: string): Promise<ExportJob | null> {
+    this.syncFromDisk();
     const claimed = this.claimExportOwner({ arrangementId, ownerUserId });
     return claimed?.job ?? null;
   }
 
   async listExportsByArrangement(arrangementId: string, ownerUserId: string, limit = 20): Promise<ExportJob[]> {
+    this.syncFromDisk();
     const clampedLimit = Math.max(1, Math.min(limit, 50));
     const history = this.listClaimedHistory({
       arrangementId,

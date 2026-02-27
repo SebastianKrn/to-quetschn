@@ -84,6 +84,7 @@
 - `mvp:infra:up` fails fast with clear message when Docker is unavailable.
 - `mvp:infra:up` starts `postgres`, `redis`, `minio` and ensures configured MinIO bucket exists.
 - `mvp:apps:up` starts `web`, `omr-service`, `worker` with replay mode enabled.
+- Local `development + CONVEX_DEPLOYMENT=local-dev` runs use shared fallback domain state so web/worker can complete MVP flow without live Convex.
 - `mvp:scenario` produces `.artifacts/mvp-scenario-summary.json` with step-level pass/fail and IDs.
 
 ### MVP Smoke Test Coverage

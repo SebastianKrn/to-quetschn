@@ -1,6 +1,6 @@
 # GriffTab Memory
 
-Last updated: 2026-02-26
+Last updated: 2026-02-27
 
 ## Snapshot
 - Foundation scaffold has been advanced to Sprint 1 runtime wiring.
@@ -16,6 +16,10 @@ Last updated: 2026-02-26
 - Sprint 5 token correction flow is implemented with owner-scoped `PATCH /api/arrangements/:id` and practice UI editor controls.
 - Sprint 6 local MVP automation is implemented with `mvp:*` commands and Playwright smoke summary output.
 - Sprint 6 benchmark gate hardening is implemented (12 licensed fixtures + strict CI benchmark blocking).
+- Sprint 6 QA/resilience hardening is implemented:
+  - MinIO bootstrap command fix in `mvp:infra:up`
+  - shared local fallback domain state (`LOCAL_DOMAIN_STORE_PATH`) for web+worker local-dev runs
+  - local S3 auto-create bucket guardrails + conversion storage failure `503` response
 - Single-session sequential branch workflow is the active protocol (parallel worktree flow retired).
 - Public sharing remains blocked by default pending legal completion.
 
@@ -57,6 +61,8 @@ Last updated: 2026-02-26
   - `pnpm mvp:apps:up`
   - `pnpm mvp:scenario`
   - `pnpm mvp:down`
+- `mvp:apps:up` now sets/resets shared local fallback state file:
+  - `LOCAL_DOMAIN_STORE_PATH=.artifacts/mvp/local-domain-store.json`
 - MVP local scenario Playwright smoke is implemented at `apps/web/e2e/mvp-smoke.pw.ts`.
 - MVP smoke writes deterministic artifact summary to `.artifacts/mvp-scenario-summary.json`.
 - Benchmark manifest now includes 12 licensed executable fixtures (`sample-licensed-001..012`).
@@ -66,6 +72,10 @@ Last updated: 2026-02-26
 - Home route now serves a German-first MVP dashboard instead of scaffold placeholder.
 - OMR runtime now supports deterministic local replay mode while keeping Audiveris parity mode available.
 - Project context docs are synchronized for Sprint 6 local-MVP + strict-benchmark state.
+- Sprint 6 QA/resilience verification is completed:
+  - `pnpm mvp:scenario` passes
+  - `pnpm test`/`lint`/`typecheck`/`build` pass
+  - `pnpm validate:skills` and `pnpm validate:memory` pass
 
 ## Open Risks
 - Docker CLI unavailable in this execution environment, so compose config validation could not run here.
@@ -74,7 +84,7 @@ Last updated: 2026-02-26
 - Practice runtime still lacks MIDI/audio integration follow-up beyond v2 loop+shortcut scope.
 
 ## Next Actions
-1. Run local MVP manual verification tomorrow using `docs/qa/mvp-local-test-tomorrow.md`.
+1. Run final local MVP manual verification using `docs/qa/mvp-local-smoke.md`.
 2. Run Docker compose smoke validation successfully in a Docker-enabled environment and archive passing evidence.
 3. Expand replay manifest coverage for additional deterministic local fixture runs.
 4. Scope next practice increment for MIDI/audio follow-up.
@@ -105,6 +115,38 @@ Last updated: 2026-02-26
 - Decisions made:
 - Blockers:
 - Next:
+
+### 2026-02-27
+- Completed:
+- Fixed local MVP infra bootstrap failure in `scripts/mvp/infra-up.sh` (`minio/mc` entrypoint now explicit).
+- Added local S3 resilience in web/worker storage clients:
+  - auto head/create bucket in `development|test`
+  - retry put on missing bucket
+- Added conversion API storage failure handling with deterministic `503` response.
+- Implemented shared local fallback domain state for `development + CONVEX_DEPLOYMENT=local-dev`:
+  - web fallback store persists/loads `.artifacts/mvp/local-domain-store.json`
+  - worker Convex client falls back to same state file for conversion/export update/query paths when Convex is unavailable
+- Hardened MVP scripts:
+  - `mvp:apps:up` sets/resets `LOCAL_DOMAIN_STORE_PATH`
+  - `mvp:down` removes local state file
+- Added regression coverage for conversion storage failure in `apps/web/src/app/api/conversions/route.test.ts`.
+- Updated QA/docs/context files (`docs/qa/*`, `PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `memory.md`).
+- Verified:
+  - `pnpm mvp:scenario` passed
+  - `pnpm test` passed
+  - `pnpm lint` passed
+  - `pnpm typecheck` passed
+  - `pnpm build` passed
+  - `pnpm validate:skills` passed
+  - `pnpm validate:memory` passed
+- Decisions made:
+- Keep fallback domain-state sharing scoped to local-dev mode only (`NODE_ENV=development` + `CONVEX_DEPLOYMENT=local-dev`) to avoid impacting secure environments.
+- Keep conversion upload failures explicit (`503`) rather than silent retry loops, so local diagnostics remain actionable.
+- Blockers:
+- Docker smoke success evidence for production compose remains open and must still run in Docker-enabled release host context.
+- Next:
+- Run manual final MVP verification checklist from `docs/qa/mvp-local-smoke.md`.
+- Capture passing Docker smoke evidence on Docker-enabled host and append to `docs/qa/docker-smoke-sprint3.md`.
 
 ### 2026-02-26
 - Completed:

@@ -200,4 +200,49 @@ describe("POST /api/conversions", () => {
     expect(body.job.status).toBe("queued");
     expect(body.queueJobId).toBe("queue-1");
   });
+
+  it("returns 503 when object storage upload fails", async () => {
+    setStorageClientForTests({
+      async putObject() {
+        throw new Error("NoSuchBucket");
+      },
+      async getSignedUrl() {
+        return { url: "https://signed.example/source.pdf" };
+      },
+      async deleteObject() {
+        return undefined;
+      }
+    });
+
+    const formData = new FormData();
+    formData.set(
+      "file",
+      new File([Buffer.from("%PDF-1.7\n%fixture\n")], "fixture.pdf", {
+        type: "application/pdf"
+      })
+    );
+    formData.set("tuning", "GCFB");
+
+    const request = new Request("http://localhost/api/conversions", {
+      method: "POST",
+      headers: {
+        "x-dev-user-id": "dev-user"
+      },
+      body: formData
+    });
+
+    const response = await POST(request);
+    const body = (await response.json()) as {
+      ok: boolean;
+      message: string;
+      details?: {
+        error?: string;
+      };
+    };
+
+    expect(response.status).toBe(503);
+    expect(body.ok).toBe(false);
+    expect(body.message).toBe("Datei konnte nicht im Objektspeicher abgelegt werden.");
+    expect(body.details?.error).toBe("NoSuchBucket");
+  });
 });
