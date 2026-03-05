@@ -12,17 +12,21 @@ Agent-optimized monorepo bootstrap for GriffTab (Standard notation -> Griffschri
 - Storage: S3-compatible (MinIO in local compose)
 - Observability: Sentry + structured JSON logs
 
-## Runtime Status (2026-02-27)
+## Runtime Status (2026-03-05)
 - Sprint 1 runtime slice is complete (auth, conversion queue, OMR, mapping, SVG rendering, persisted API routes).
 - Sprint 2 micro-sprint export slice is complete (queued PDF export pipeline with status polling and signed artifact download URL).
 - Sprint 2 hardening + practice MVP are complete (owner-scoped access, expanded OMR normalization, benchmark harness, practice route/UI).
 - Sprint 5 MVP dashboard + token correction + hybrid OMR replay mode are complete.
 - Sprint 6 local MVP orchestration commands are available (`mvp:infra:up`, `mvp:apps:up`, `mvp:scenario`, `mvp:down`).
+- Sprint 8 local MVP GA workflow adds:
+  - `mvp:ready` (verify + strict benchmark + replay scenario)
+  - `release:compose:check` (all compose config validation)
 - Benchmark harness is hardened to 12 licensed fixtures and strict CI blocking mode.
 - Sprint 7 pilot local Docker path is available (`pilot:up`, `pilot:smoke`, `pilot:down`) with session auth pages (`/login`, `/register`).
 - Conversion flow now supports upload-rights confirmation enforcement (`ENFORCE_UPLOAD_RIGHTS_CONFIRMATION=true`).
 - Benchmark manifest now includes 20 licensed fixtures and expanded replay coverage.
 - Public sharing remains disabled by default (`FEATURE_PUBLIC_SHARING=false`).
+- Pilot/Audiveris hardening remains a separate track and is not blocking local MVP replay GA.
 
 ## Repository Priorities For Agents
 1. `PROJECT_SPEC.md`
@@ -40,6 +44,8 @@ pnpm test
 pnpm build
 pnpm verify
 pnpm benchmark --strict --json .artifacts/benchmark-summary.json
+pnpm release:compose:check
+pnpm mvp:ready
 pnpm mvp:infra:up
 pnpm mvp:apps:up
 pnpm mvp:scenario --mode replay
@@ -60,7 +66,8 @@ pnpm fixtures:register --pdf <path> --normalized <path> --id <id> --license lice
 - [x] Skills mirrored and validated (`pnpm sync:skills && pnpm validate:skills`)
 - [x] `memory.md` includes latest status update (`pnpm validate:memory`)
 - [ ] Docker stack starts locally (`docker compose -f docker-compose.dev.yml up -d`)
-- [ ] Pilot stack smoke passes (`pnpm pilot:smoke`)
+- [ ] Local MVP replay gate passes (`pnpm mvp:ready`)
+- [ ] Optional pilot stack smoke passes (`pnpm pilot:smoke`)
 
 ## Notes
 - Public sharing of arrangements is feature-flagged off by default until legal track is complete.
@@ -68,3 +75,19 @@ pnpm fixtures:register --pdf <path> --normalized <path> --id <id> --license lice
 - Pilot Docker runbook: `docs/qa/pilot-local-docker.md`.
 - Single-session branch workflow is defined in `AGENTS.md` and `CLAUDE.md`.
 - Docker smoke runbook: `docs/qa/docker-smoke-sprint3.md`.
+
+## Direct Main Push Workflow
+```bash
+git switch main
+git merge --ff-only codex/fix/<slice>
+
+if git remote get-url origin >/dev/null 2>&1; then
+  echo "origin exists"
+elif gh repo view SebastianKrn/to-quetschn >/dev/null 2>&1; then
+  git remote add origin https://github.com/SebastianKrn/to-quetschn.git
+else
+  gh repo create SebastianKrn/to-quetschn --private --source=. --remote=origin
+fi
+
+git push -u origin main
+```

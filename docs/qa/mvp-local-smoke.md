@@ -1,4 +1,4 @@
-# MVP Local Smoke Runbook (Sprint 6)
+# MVP Local Smoke Runbook (Sprint 8)
 
 ## Purpose
 Validate the local MVP workflow end-to-end:
@@ -21,7 +21,22 @@ The local smoke flow uses:
 - fixture: `benchmarks/pdfs/sample-licensed-001.pdf`
 - dev auth header via `x-dev-user-id` (development/test only)
 
-## Manual Flow (Host Apps + Docker Infra)
+## Primary Gate (One Command)
+```bash
+pnpm mvp:ready
+```
+
+This command runs:
+- `pnpm verify`
+- `pnpm benchmark --strict --json .artifacts/benchmark-summary.json`
+- `pnpm mvp:scenario --mode replay --auth dev-header --summary .artifacts/mvp-scenario-summary.json`
+
+Expected outputs:
+- `.artifacts/benchmark-summary.json`
+- `.artifacts/mvp-scenario-summary.json`
+- `.artifacts/mvp/*.log`
+
+## Manual Fallback Flow (Host Apps + Docker Infra)
 1. Install dependencies:
 ```bash
 pnpm install
@@ -40,7 +55,7 @@ pnpm mvp:apps:up
 7. Open practice mode, click a token in SVG, edit row/button/direction, save.
 8. Trigger export and wait for `completed` status with download URL.
 
-## One-Command Automated Smoke
+## Replay Scenario Only (Without Full Ready Gate)
 ```bash
 pnpm mvp:scenario --mode replay
 ```
@@ -52,6 +67,7 @@ Audiveris parity mode:
 ```bash
 pnpm mvp:scenario --mode audiveris --fixture benchmarks/pdfs/sample-licensed-001.pdf
 ```
+Use this mode only for parity checks; it is not part of local MVP replay GA gate.
 
 ## Teardown
 ```bash
@@ -73,3 +89,5 @@ pnpm mvp:down
   - Re-run `pnpm mvp:infra:up` (bucket creation is part of the script).
 - Conversion polling stays `queued` in local-only runs:
   - Ensure `pnpm mvp:apps:up` was started from this branch so web+worker share `LOCAL_DOMAIN_STORE_PATH`.
+- Pilot/Audiveris issues:
+  - Use `docs/qa/pilot-local-docker.md` for pilot-specific troubleshooting and evidence steps.

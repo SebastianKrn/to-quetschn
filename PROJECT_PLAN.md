@@ -1,6 +1,6 @@
 # GriffTab Execution Plan (Phase 1+2+3 Foundation)
 
-Last updated: 2026-02-27
+Last updated: 2026-03-05
 
 ## Objective
 Establish a production-ready foundation where coding agents can implement features quickly and safely with minimal ambiguity.
@@ -216,12 +216,27 @@ Status: Completed (unchanged in Sprint 1)
 - OMR health in pilot smoke reported `audiverisAvailable=false`.
 - `pilot:scenario:audiveris` summary currently reports `passed=0 failed=3`.
 
+## Sprint 8 Local MVP GA Progress (Implemented)
+1. Local MVP replay gate was codified as one command:
+- added `pnpm mvp:ready` (runs `verify` + strict benchmark + replay scenario).
+- command fails if `.artifacts/mvp-scenario-summary.json` does not report `result=passed`.
+2. Release preflight command was added for compose validation:
+- added `pnpm release:compose:check`.
+- validates `docker-compose.yml`, `docker-compose.dev.yml`, and `docker-compose.pilot.yml`.
+3. QA/docs handoff was updated for local MVP-first execution:
+- `docs/qa/mvp-local-smoke.md` now promotes `pnpm mvp:ready` as primary gate.
+- README now includes direct-main push flow with `origin` fallback via `gh`.
+- pilot/audiveris track remains explicit but non-blocking for replay MVP GA.
+4. Branch workflow aligned to single-session protocol:
+- local `main` was fast-forwarded to Sprint 7 baseline before Sprint 8 branch creation.
+- Sprint 8 changes live on `codex/fix/sprint8-mvp-local-ga`.
+
 ## Next Sprint Focus
 1. Fix pilot session-auth smoke path and re-run `pnpm pilot:smoke` until green.
 2. Fix Audiveris runtime/container availability and re-run `pnpm pilot:scenario:audiveris` until green.
-3. Re-run full Sprint 7 gate sequence and archive passing evidence artifacts (`benchmark`, replay scenario, audiveris scenarios, pilot smoke, pilot evidence bundle).
+3. Re-run full pilot gate sequence and archive passing evidence artifacts (`benchmark`, replay scenario, audiveris scenarios, pilot smoke, pilot evidence bundle).
 4. Continue legal/licensing workflow and reviewer assignment for broader repertoire readiness.
-5. Scope practice-mode audio/MIDI follow-up beyond MVP pilot gate.
+5. Scope practice-mode audio/MIDI follow-up beyond MVP replay GA.
 
 ## Sprint 2 Micro-Sprint Progress (Implemented)
 1. Added export contracts (`ExportJob`, `ExportQueuePayload`) and export queue topics.

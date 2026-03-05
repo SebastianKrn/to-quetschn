@@ -1,6 +1,6 @@
 # GriffTab Memory
 
-Last updated: 2026-02-27
+Last updated: 2026-03-05
 
 ## Snapshot
 - Foundation scaffold has been advanced to Sprint 1 runtime wiring.
@@ -26,6 +26,10 @@ Last updated: 2026-02-27
   - upload rights confirmation contract and metadata persistence
   - benchmark and replay manifests expanded to 20 licensed fixtures
   - audiveris scenario/evidence command surface added
+- Sprint 8 local MVP replay GA workflow is implemented:
+  - one-command local gate `pnpm mvp:ready`
+  - compose preflight command `pnpm release:compose:check`
+  - updated local MVP docs with direct-main push workflow guidance
 - Single-session sequential branch workflow is the active protocol (parallel worktree flow retired).
 - Public sharing remains blocked by default pending legal completion.
 
@@ -66,33 +70,38 @@ Last updated: 2026-02-27
   - `pnpm mvp:infra:up`
   - `pnpm mvp:apps:up`
   - `pnpm mvp:scenario`
+  - `pnpm mvp:ready`
   - `pnpm mvp:down`
+- Release compose preflight command is implemented:
+  - `pnpm release:compose:check`
 - `mvp:apps:up` now sets/resets shared local fallback state file:
   - `LOCAL_DOMAIN_STORE_PATH=.artifacts/mvp/local-domain-store.json`
 - MVP local scenario Playwright smoke is implemented at `apps/web/e2e/mvp-smoke.pw.ts`.
 - MVP smoke writes deterministic artifact summary to `.artifacts/mvp-scenario-summary.json`.
-- Benchmark manifest now includes 12 licensed executable fixtures (`sample-licensed-001..012`).
+- Benchmark manifest now includes 20 licensed executable fixtures (`sample-licensed-001..020`).
 - CI benchmark step is now strict and blocking.
 - CI includes advisory MVP scenario smoke plus artifact upload.
 - Practice route `/practice/[arrangementId]` is implemented with tempo slider, play/pause auto-scroll, loop range controls, and keyboard shortcuts.
 - Home route now serves a German-first MVP dashboard instead of scaffold placeholder.
 - OMR runtime now supports deterministic local replay mode while keeping Audiveris parity mode available.
-- Project context docs are synchronized for Sprint 6 local-MVP + strict-benchmark state.
-- Sprint 6 QA/resilience verification is completed:
-  - `pnpm mvp:scenario` passes
+- Project context docs are synchronized for Sprint 8 local MVP replay GA state.
+- Sprint 8 local MVP replay verification is completed:
+  - `pnpm mvp:ready` command surface added
   - `pnpm test`/`lint`/`typecheck`/`build` pass
+  - `pnpm benchmark --strict` pass (`20 passed`, `0 failed`)
   - `pnpm validate:skills` and `pnpm validate:memory` pass
 
 ## Open Risks
+- Docker daemon is not running in this host right now, so runtime MVP smoke execution remains blocked until daemon start.
 - Pilot smoke currently fails under session-auth flow (`.artifacts/pilot/pilot-scenario-summary.json` shows failed auth step).
 - Audiveris capability/reporting remains unresolved in pilot runtime (`audiverisAvailable=false` in latest pilot smoke log).
 - Audiveris pilot scenario is failing (`.artifacts/pilot/audiveris-summary.json` shows `passed=0 failed=3`).
 - Practice runtime still lacks MIDI/audio integration follow-up beyond v2 loop+shortcut scope.
 
 ## Next Actions
-1. Fix pilot session auth path in Playwright smoke and re-run `pnpm pilot:smoke` to green.
-2. Fix Audiveris runtime availability in OMR service container, then re-run `pnpm pilot:scenario:audiveris`.
-3. Re-generate full evidence bundle with passing artifacts via `pnpm pilot:evidence`.
+1. Start Docker daemon and run `pnpm mvp:ready` to produce current local MVP replay evidence artifacts.
+2. Push `main` to GitHub using `origin` fallback (`gh repo view/create`) and `git push -u origin main`.
+3. Keep pilot auth/audiveris hardening on separate track and rerun `pnpm pilot:smoke` + `pnpm pilot:scenario:audiveris` once prioritized.
 4. Scope next practice increment for MIDI/audio follow-up.
 5. Continue legal/licensing workflow and reviewer assignment.
 
@@ -105,18 +114,21 @@ Last updated: 2026-02-27
 - `pnpm install`
 - `pnpm validate:skills`
 - `pnpm validate:memory`
-3. Re-run required gates in order after fixes:
+3. Re-run required gates in order:
 - `pnpm test`
 - `pnpm lint`
 - `pnpm typecheck`
 - `pnpm build`
-4. Execute pilot gate commands:
+4. Run local MVP replay gate commands:
+- `pnpm release:compose:check`
+- `pnpm mvp:ready`
+5. Execute pilot gate commands when pilot track is active:
 - `pnpm benchmark --strict --json .artifacts/benchmark-summary.json`
 - `pnpm mvp:scenario --mode replay`
 - `pnpm pilot:scenario:audiveris`
 - `pnpm pilot:smoke`
 - `pnpm pilot:evidence`
-5. Before merge, keep context sync in one commit touching:
+6. Before merge, keep context sync in one commit touching:
 - `PROJECT_SPEC.md`
 - `PROJECT_PLAN.md`
 - `memory.md`
@@ -127,6 +139,30 @@ Last updated: 2026-02-27
 - Decisions made:
 - Blockers:
 - Next:
+
+### 2026-03-05
+- Completed:
+- Fast-forwarded local `main` to Sprint 7 baseline (`e2e621f`) and created Sprint 8 branch `codex/fix/sprint8-mvp-local-ga`.
+- Added local MVP readiness command surface:
+  - `pnpm mvp:ready`
+  - `scripts/mvp/ready.sh`
+- Added release compose validation command surface:
+  - `pnpm release:compose:check`
+  - `scripts/release/compose-check.sh`
+- Updated docs/context for Sprint 8 MVP replay GA:
+  - `README.md`
+  - `docs/qa/mvp-local-smoke.md`
+  - `PROJECT_SPEC.md`
+  - `PROJECT_PLAN.md`
+  - `memory.md`
+- Decisions made:
+- Keep Sprint 8 success criteria scoped to local MVP replay GA; pilot/audiveris remains non-blocking.
+- Keep direct-main push workflow with `origin` fallback via `gh repo view/create` and private repo default.
+- Blockers:
+- Docker daemon not running in this host, so `mvp:scenario`/`mvp:ready` runtime execution is currently blocked.
+- Next:
+- Start Docker daemon and run `pnpm mvp:ready`.
+- Run full gate sequence and push `main` to GitHub remote.
 
 ### 2026-02-27
 - Completed:

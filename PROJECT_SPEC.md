@@ -1,7 +1,7 @@
 # GriffTab Project Specification (Normalized)
 
-Last updated: 2026-02-27
-Status: Sprint 7 pilot-readiness implementation complete in scope; pilot validation/evidence stabilization in progress
+Last updated: 2026-03-05
+Status: Sprint 8 local MVP replay GA workflow implemented; pilot validation/evidence stabilization remains a separate track
 
 ## Implementation Status (Current)
 - Foundation scaffold remains verified and intact.
@@ -36,7 +36,10 @@ Status: Sprint 7 pilot-readiness implementation complete in scope; pilot validat
   - `pnpm mvp:infra:up`
   - `pnpm mvp:apps:up`
   - `pnpm mvp:scenario`
+  - `pnpm mvp:ready`
   - `pnpm mvp:down`
+- Release compose preflight command is available:
+  - `pnpm release:compose:check`
 - Local MVP infra now hardens MinIO bucket bootstrap (`minio/mc` entrypoint fix), preventing `mc: sh is not a recognized command` failures.
 - Local `development + CONVEX_DEPLOYMENT=local-dev` runs now share fallback domain state between web and worker via `LOCAL_DOMAIN_STORE_PATH` for deterministic conversion/export polling without live Convex.
 - Storage clients now auto-create missing buckets in local runtimes and conversion upload returns explicit `503` messaging when object storage writes fail.
@@ -57,6 +60,8 @@ Status: Sprint 7 pilot-readiness implementation complete in scope; pilot validat
   - session-auth pilot smoke failed at login step
   - OMR health reported `audiverisAvailable=false` in the same run
   - audiveris batch scenario summary is failing
+- Local MVP replay GA gate is now codified in one command:
+  - `pnpm mvp:ready` (verify + strict benchmark + replay scenario)
 - Single-session branch workflow is now the active protocol (dual-session worktree playbook retired).
 - Docker smoke runbook evidence is documented for blocked hosts and requires successful execution in a Docker-enabled environment for release proof.
 - OMR errors are typed and normalized using taxonomy:
@@ -132,7 +137,7 @@ Excluded in this foundation stage:
 - Legal and licensing workflow for copyrighted songs
 - Final reference dataset curation (still synthetic-heavy despite broader fixtures)
 - Named music expert reviewer assignment
-- Pilot gate stabilization remains open:
+- Pilot gate stabilization remains open (non-blocking for local MVP replay GA):
   - fix session-auth smoke path and rerun `pnpm pilot:smoke`
   - fix Audiveris runtime availability and rerun `pnpm pilot:scenario:audiveris`
   - regenerate passing evidence bundle via `pnpm pilot:evidence`
