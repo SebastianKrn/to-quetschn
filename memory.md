@@ -92,16 +92,15 @@ Last updated: 2026-03-05
   - `pnpm validate:skills` and `pnpm validate:memory` pass
 
 ## Open Risks
-- Docker daemon is not running in this host right now, so runtime MVP smoke execution remains blocked until daemon start.
 - Pilot smoke currently fails under session-auth flow (`.artifacts/pilot/pilot-scenario-summary.json` shows failed auth step).
 - Audiveris capability/reporting remains unresolved in pilot runtime (`audiverisAvailable=false` in latest pilot smoke log).
 - Audiveris pilot scenario is failing (`.artifacts/pilot/audiveris-summary.json` shows `passed=0 failed=3`).
 - Practice runtime still lacks MIDI/audio integration follow-up beyond v2 loop+shortcut scope.
 
 ## Next Actions
-1. Start Docker daemon and run `pnpm mvp:ready` to produce current local MVP replay evidence artifacts.
-2. Push `main` to GitHub using `origin` fallback (`gh repo view/create`) and `git push -u origin main`.
-3. Keep pilot auth/audiveris hardening on separate track and rerun `pnpm pilot:smoke` + `pnpm pilot:scenario:audiveris` once prioritized.
+1. Keep pilot auth/audiveris hardening on separate track and rerun `pnpm pilot:smoke` + `pnpm pilot:scenario:audiveris` once prioritized.
+2. Re-generate pilot evidence bundle with passing artifacts via `pnpm pilot:evidence` after pilot fixes.
+3. Preserve Sprint 8 local replay GA baseline by keeping `pnpm mvp:ready` green on follow-up changes.
 4. Scope next practice increment for MIDI/audio follow-up.
 5. Continue legal/licensing workflow and reviewer assignment.
 
@@ -155,14 +154,25 @@ Last updated: 2026-03-05
   - `PROJECT_SPEC.md`
   - `PROJECT_PLAN.md`
   - `memory.md`
+- Ran required quality and release gates:
+  - `pnpm test`
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm build`
+  - `pnpm validate:skills`
+  - `pnpm validate:memory`
+  - `pnpm benchmark --strict --json .artifacts/benchmark-summary.json` (`20 passed`, `0 failed`, `1 skipped`)
+  - `pnpm release:compose:check`
+  - `pnpm mvp:scenario --mode replay`
+  - `pnpm mvp:ready`
+- Merged Sprint 8 branch back to `main`, pushed to remote, and cleaned merged local branches.
 - Decisions made:
 - Keep Sprint 8 success criteria scoped to local MVP replay GA; pilot/audiveris remains non-blocking.
 - Keep direct-main push workflow with `origin` fallback via `gh repo view/create` and private repo default.
 - Blockers:
-- Docker daemon not running in this host, so `mvp:scenario`/`mvp:ready` runtime execution is currently blocked.
+- Pilot auth/audiveris track remains unresolved and is still blocked for pilot release readiness.
 - Next:
-- Start Docker daemon and run `pnpm mvp:ready`.
-- Run full gate sequence and push `main` to GitHub remote.
+- Continue with pilot stabilization work (`pilot:smoke`, `pilot:scenario:audiveris`, `pilot:evidence`).
 
 ### 2026-02-27
 - Completed:

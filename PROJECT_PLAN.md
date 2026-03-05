@@ -229,7 +229,14 @@ Status: Completed (unchanged in Sprint 1)
 - pilot/audiveris track remains explicit but non-blocking for replay MVP GA.
 4. Branch workflow aligned to single-session protocol:
 - local `main` was fast-forwarded to Sprint 7 baseline before Sprint 8 branch creation.
-- Sprint 8 changes live on `codex/fix/sprint8-mvp-local-ga`.
+- Sprint 8 changes are merged into `main` and pushed to `origin/main` (commit `179df6c`).
+5. Verification evidence completed on Sprint 8 baseline:
+- `pnpm test`/`lint`/`typecheck`/`build` pass.
+- `pnpm validate:skills` and `pnpm validate:memory` pass.
+- strict benchmark passed (`20 passed`, `0 failed`, `1 skipped`).
+- `pnpm release:compose:check` passed.
+- `pnpm mvp:scenario --mode replay` passed.
+- `pnpm mvp:ready` passed.
 
 ## Next Sprint Focus
 1. Fix pilot session-auth smoke path and re-run `pnpm pilot:smoke` until green.

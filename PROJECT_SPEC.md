@@ -62,6 +62,9 @@ Status: Sprint 8 local MVP replay GA workflow implemented; pilot validation/evid
   - audiveris batch scenario summary is failing
 - Local MVP replay GA gate is now codified in one command:
   - `pnpm mvp:ready` (verify + strict benchmark + replay scenario)
+- Latest local replay evidence is green on 2026-03-05:
+  - `pnpm mvp:scenario --mode replay` passed
+  - `pnpm mvp:ready` passed
 - Single-session branch workflow is now the active protocol (dual-session worktree playbook retired).
 - Docker smoke runbook evidence is documented for blocked hosts and requires successful execution in a Docker-enabled environment for release proof.
 - OMR errors are typed and normalized using taxonomy:
