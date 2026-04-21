@@ -1,6 +1,6 @@
 # GriffTab Memory
 
-Last updated: 2026-03-05
+Last updated: 2026-04-21
 
 ## Snapshot
 - Foundation scaffold has been advanced to Sprint 1 runtime wiring.
@@ -32,6 +32,7 @@ Last updated: 2026-03-05
   - updated local MVP docs with direct-main push workflow guidance
 - Single-session sequential branch workflow is the active protocol (parallel worktree flow retired).
 - Public sharing remains blocked by default pending legal completion.
+- **Portfolio posture (2026-04-21):** the repo is now public at [SebastianKrn/to-quetschn](https://github.com/SebastianKrn/to-quetschn), MIT-licensed, with a user-first README. Active development is wound down; the project is now in **occasional maintenance mode**. The weekly `Audiveris Scenario` workflow has been converted to `workflow_dispatch`-only with a fixture guard that skips cleanly when no real licensed PDFs are committed.
 
 ## Decisions (Locked)
 - Monorepo: pnpm + Turborepo
@@ -92,17 +93,21 @@ Last updated: 2026-03-05
   - `pnpm validate:skills` and `pnpm validate:memory` pass
 
 ## Open Risks
-- Pilot smoke currently fails under session-auth flow (`.artifacts/pilot/pilot-scenario-summary.json` shows failed auth step).
-- Audiveris capability/reporting remains unresolved in pilot runtime (`audiverisAvailable=false` in latest pilot smoke log).
-- Audiveris pilot scenario is failing (`.artifacts/pilot/audiveris-summary.json` shows `passed=0 failed=3`).
-- Practice runtime still lacks MIDI/audio integration follow-up beyond v2 loop+shortcut scope.
+- (Deferred, non-blocking in portfolio mode) Pilot session-auth smoke previously failed; retained as technical debt, not scheduled.
+- (Deferred, non-blocking in portfolio mode) Audiveris pilot scenario is gated behind real licensed fixtures which are intentionally not committed; the CI workflow skips cleanly without them.
+- (Deferred, non-blocking in portfolio mode) Practice runtime still lacks MIDI/audio integration.
+- Public-sharing legal track is incomplete; `FEATURE_PUBLIC_SHARING=false` remains the safe default.
 
 ## Next Actions
-1. Keep pilot auth/audiveris hardening on separate track and rerun `pnpm pilot:smoke` + `pnpm pilot:scenario:audiveris` once prioritized.
-2. Re-generate pilot evidence bundle with passing artifacts via `pnpm pilot:evidence` after pilot fixes.
-3. Preserve Sprint 8 local replay GA baseline by keeping `pnpm mvp:ready` green on follow-up changes.
-4. Scope next practice increment for MIDI/audio follow-up.
-5. Continue legal/licensing workflow and reviewer assignment.
+Portfolio-mode backlog — pick up only when actively returning to the project.
+
+1. **Visual evidence in README.** Capture 2–3 screenshots (upload → Griffschrift view → practice mode) and optionally a short GIF; embed in a new `## Demo` section just above `## Why this exists`. Requires running `pnpm mvp:infra:up && pnpm mvp:apps:up` locally.
+2. **Hosted demo URL.** Deploy the Next.js app to Vercel in replay mode (no Audiveris dependency), stand up a Convex prod deployment, and link the live URL from the README + repo homepage field.
+3. **Tidy the root.** Move `PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `memory.md`, `AGENTS.md`, `CLAUDE.md`, and the two `docs/qa/post-implementation-handoff-*.md` files into `docs/internal/` so the root only shows `README.md`, `LICENSE`, and user-facing dirs. Update the README's "For contributors and agents" section pointers accordingly.
+4. **Dependency hygiene sweep** before any future feature work: `pnpm outdated`, apply Renovate or Dependabot config, refresh the lockfile.
+5. **If and when real Audiveris validation is wanted:** commit licensed PDFs to `benchmarks/pdfs/sample-licensed-00{1,2,3}.pdf` (or provide a path via `PILOT_AUDIVERIS_FIXTURES`) and manually dispatch the workflow. The install step is already hardened for the xdg-desktop-menu post-install issue.
+
+See Sprint 7 pilot stabilization work (`pilot:smoke`, `pilot:scenario:audiveris`, `pilot:evidence`) as historical context — not on the active roadmap.
 
 ## Next Session Bootstrap
 1. Sync and inspect branch state:
@@ -138,6 +143,23 @@ Last updated: 2026-03-05
 - Decisions made:
 - Blockers:
 - Next:
+
+### 2026-04-21 (Portfolio polish sprint — project shifts to maintenance mode)
+- Completed:
+- Fixed the weekly failing `Audiveris Scenario` GitHub Action (5+ consecutive Monday failures). Dropped the cron trigger, added a fixture-presence guard as the first job step that skips every subsequent step when only placeholder PDFs are committed, and hardened the Audiveris `.deb` install against the `xdg-desktop-menu: No writable system menu directory found` post-install failure (`sudo mkdir -p /usr/share/desktop-directories /usr/share/applications` + fallback `dpkg --configure -a --force-all`). Fix landed via PRs #1 and #2; manual dispatch on `main` now reports green with a skip summary.
+- Patched `scripts/pilot/scenario-audiveris.sh` to split placeholder detection from hard PDF validation: all-placeholders exits 0 with a clear skip message, mixed fixtures hard-fail as misconfiguration.
+- Replaced `LICENSE.internal.md` (proprietary) with standard MIT `LICENSE`.
+- Full `README.md` rewrite for a human audience: tagline, why Griffschrift matters, shipped features, grouped tech stack, ASCII architecture diagram, replay-mode quick start (no Docker), Docker path, pilot path, repo layout, project status, and a demoted "for contributors and agents" section pointing to the internal workflow docs.
+- Flipped repo visibility to **public** via `gh repo edit SebastianKrn/to-quetschn --visibility public`.
+- Set repo description and added topics: `typescript`, `nextjs`, `convex`, `monorepo`, `music-notation`, `omr`, `accordion`, `griffschrift`, `portfolio`, `pnpm`.
+- Updated this `memory.md` with portfolio posture, new Open Risks framing, and a portfolio-mode Next Actions backlog.
+- Decisions made:
+- Project moves to **occasional maintenance mode**; active sprint cadence is retired.
+- Audiveris Scenario workflow stays in the repo (manual-only) rather than being deleted — cheap when it skips, useful when real fixtures are eventually added.
+- Internal agent docs (`CLAUDE.md`, `AGENTS.md`, `PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `memory.md`, `GriffTab_PRD_v1.0.docx`) intentionally remain at root for now; moving them to `docs/internal/` is captured as a portfolio-mode next action.
+- Blockers: none.
+- Next:
+- Visual evidence (screenshots/GIF) and a hosted demo URL are the two items that would raise the portfolio bar most; see `## Next Actions` for the current backlog.
 
 ### 2026-03-05
 - Completed:
