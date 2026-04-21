@@ -9,42 +9,95 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Real licensed PDFs cannot be committed to this repo, so the default
+      # fixtures at benchmarks/pdfs/sample-licensed-00{1,2,3}.pdf are tiny
+      # placeholders. When that is the case, there is no point installing
+      # Audiveris / Java / Playwright or spinning up Docker — skip the whole
+      # run with a green tick and a notice. To actually exercise Audiveris,
+      # commit real licensed PDFs to those paths before dispatching.
+      - name: Check for real licensed fixtures
+        id: fixtures
+        run: |
+          has_real=false
+          missing_or_placeholder=""
+          for f in benchmarks/pdfs/sample-licensed-001.pdf \
+                   benchmarks/pdfs/sample-licensed-002.pdf \
+                   benchmarks/pdfs/sample-licensed-003.pdf; do
+            if [ -f "$f" ] && [ "$(wc -c < "$f" | tr -d ' ')" -ge 1024 ]; then
+              has_real=true
+            else
+              missing_or_placeholder="$missing_or_placeholder $f"
+            fi
+          done
+          echo "has_real=$has_real" >> "$GITHUB_OUTPUT"
+          if [ "$has_real" != "true" ]; then
+            {
+              echo "### Audiveris Scenario — skipped"
+              echo ""
+              echo "No real licensed PDF fixtures found. The following paths are"
+              echo "missing or are size-<1KB placeholders:"
+              echo ""
+              for f in $missing_or_placeholder; do echo "- \`$f\`"; done
+              echo ""
+              echo "Commit real licensed PDFs to those paths (or update the fixture"
+              echo "list) and re-dispatch this workflow to exercise the Audiveris path."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::notice::No real licensed PDF fixtures present — skipping Audiveris scenario."
+          fi
+
       - uses: pnpm/action-setup@v4
+        if: steps.fixtures.outputs.has_real == 'true'
         with:
           version: 10.28.2
 
       - uses: actions/setup-node@v4
+        if: steps.fixtures.outputs.has_real == 'true'
         with:
           node-version: 22
           cache: pnpm
 
       - uses: actions/setup-java@v4
+        if: steps.fixtures.outputs.has_real == 'true'
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Install dependencies
+        if: steps.fixtures.outputs.has_real == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Install Audiveris
+        if: steps.fixtures.outputs.has_real == 'true'
         run: |
           curl -fsSL -o /tmp/audiveris.deb \
             https://github.com/Audiveris/audiveris/releases/download/5.9.0/Audiveris-5.9.0-ubuntu24.04-x86_64.deb
           sudo apt-get update
-          sudo apt-get install -y /tmp/audiveris.deb
+          # The Audiveris .deb post-install calls xdg-desktop-menu, which fails
+          # on headless runners with "No writable system menu directory found"
+          # when these dirs are missing. Creating them up front avoids the
+          # dpkg post-install error that otherwise aborts the job.
+          sudo mkdir -p /usr/share/desktop-directories /usr/share/applications
+          if ! sudo apt-get install -y /tmp/audiveris.deb; then
+            # If the install still fails due to the desktop-menu post-install
+            # hook, force-configure the package — the core binary has already
+            # been unpacked and the GUI integration is irrelevant in CI.
+            sudo dpkg --configure -a --force-all || true
+          fi
           if [ -x /usr/bin/Audiveris ] && [ ! -x /usr/bin/audiveris ]; then
             sudo ln -s /usr/bin/Audiveris /usr/bin/audiveris
           fi
           audiveris --version || true
 
       - name: Install Playwright Chromium
+        if: steps.fixtures.outputs.has_real == 'true'
         run: pnpm --filter @grifftab/web exec playwright install --with-deps chromium
 
       - name: Audiveris MVP scenarios
+        if: steps.fixtures.outputs.has_real == 'true'
         run: pnpm pilot:scenario:audiveris
 
       - name: Upload Audiveris scenario artifacts
-        if: always()
+        if: always() && steps.fixtures.outputs.has_real == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: audiveris-scenario-artifacts
