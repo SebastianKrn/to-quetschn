@@ -17,7 +17,7 @@
     "@aws-sdk/s3-request-presigner": "^3.987.0",
     "@grifftab/domain-types": "workspace:*",
     "@grifftab/renderer-svg": "workspace:*",
-    "better-auth": "^1.4.18",
+    "better-auth": "^1.6.22",
     "bullmq": "^5.68.0",
     "convex": "^1.31.7",
     "ioredis": "^5.9.2",
