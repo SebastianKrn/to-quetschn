@@ -16,7 +16,7 @@
     "@grifftab/domain-types": "workspace:*",
     "@grifftab/griffschrift-engine": "workspace:*",
     "@grifftab/omr-provider": "workspace:*",
-    "zod": "^3.24.1"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "tsx": "^4.21.0"
